@@ -1,7 +1,8 @@
 package `in`.s123dive.oneremote
 
 import android.content.Context
-import `in`.s123dive.oneremote.core.DeviceRegistry
+import `in`.s123dive.oneremote.devices.DeviceFactory
+import `in`.s123dive.oneremote.devices.WifiTransportFactories
 import `in`.s123dive.oneremote.core.Router
 import `in`.s123dive.oneremote.core.SendLog
 import `in`.s123dive.oneremote.data.AppRepository
@@ -28,7 +29,8 @@ class AppGraph(context: Context) {
     val ir = IrTransmitter(irPort)
     val capabilities = CapabilityDetector(context, irPort.capability)
 
-    /** Phase 0 ships no device drivers; the Router reports "no driver … yet" explicitly. */
-    val registry = DeviceRegistry { null }
+    /** Wi-Fi drivers register per device type; IR is built from the instance's codeset. */
+    val wifiFactories = WifiTransportFactories()
+    val registry = DeviceFactory(ir, wifiFactories)
     val router = Router(repository::current, registry, log)
 }

@@ -198,7 +198,12 @@ private fun DevicesTab(vm: DebugViewModel) {
                 Text("No devices configured.", style = MaterialTheme.typography.bodySmall)
             }
             state.devices.forEach { d ->
+                val cfg = `in`.s123dive.oneremote.devices.DeviceConfig(d.config)
                 KeyValue(d.name, "${d.type.displayName} · ${d.transports.joinToString("/") { it.badge }}")
+                KeyValue("  codeset", (cfg.codesetId ?: "custom") + if (cfg.customCodes.isEmpty()) "" else " +${cfg.customCodes.size} expert")
+                cfg.ip?.let { KeyValue("  ip", it) }
+                cfg.webosVersion?.let { KeyValue("  webOS", it) }
+                cfg.model?.let { KeyValue("  model", it + (cfg.firmware?.let { f -> " / $f" } ?: "")) }
             }
         }
     }

@@ -8,6 +8,8 @@ data class RouteRequest(
     val role: Role,
     val cmd: Command,
     val source: Source = Source.SCREEN,
+    /** When set, the room/role lookup is skipped and this instance is used directly (per-device remotes). */
+    val instanceId: String? = null,
 )
 
 /** The outcome of routing one command, including which transport carried it. */
@@ -40,12 +42,20 @@ class Router(
 ) {
     suspend fun send(req: RouteRequest): RouteResult {
         val app = state()
-        val room = app.room(req.roomId)
-            ?: return unsupported(req, app, "no room '${req.roomId}'")
-        val instanceId = room.instanceIdFor(req.role)
-            ?: return unsupported(req, app, "room '${room.name}' has no ${req.role.name.lowercase()}")
-        val instance = app.device(instanceId)
-            ?: return unsupported(req, app, "device '$instanceId' missing")
+        val instance: DeviceInstance
+        val roomName: String
+        if (req.instanceId != null) {
+            instance = app.device(req.instanceId) ?: return unsupported(req, app, "device '${req.instanceId}' missing")
+            roomName = app.room(instance.roomId)?.name ?: instance.roomId
+        } else {
+            val room = app.room(req.roomId)
+                ?: return unsupported(req, app, "no room '${req.roomId}'")
+            val instanceId = room.instanceIdFor(req.role)
+                ?: return unsupported(req, app, "room '${room.name}' has no ${req.role.name.lowercase()}")
+            instance = app.device(instanceId)
+                ?: return unsupported(req, app, "device '$instanceId' missing")
+            roomName = room.name
+        }
         val device = registry.get(instance)
             ?: return unsupported(req, app, "no driver for ${instance.type.displayName} yet")
 
@@ -69,15 +79,15 @@ class Router(
             val ms = clock() - started
             when (result) {
                 is SendResult.Ok -> {
-                    log(req, room.name, transport.kind.badge, result.payload, "OK", ms)
+                    log(req, roomName, transport.kind.badge, result.payload, "OK", ms)
                     return RouteResult.Sent(transport.kind, result.payload, ms)
                 }
                 is SendResult.Failed -> {
-                    log(req, room.name, transport.kind.badge, result.payload, "FAILED: ${result.reason}", ms)
+                    log(req, roomName, transport.kind.badge, result.payload, "FAILED: ${result.reason}", ms)
                     last = RouteResult.Failed(result.reason, transport.kind)
                 }
                 is SendResult.Unsupported -> {
-                    log(req, room.name, transport.kind.badge, payload, "UNSUPPORTED: ${result.reason}", ms)
+                    log(req, roomName, transport.kind.badge, payload, "UNSUPPORTED: ${result.reason}", ms)
                 }
             }
         }

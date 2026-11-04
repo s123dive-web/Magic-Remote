@@ -9,7 +9,7 @@ Stack: Kotlin, Compose M3, minSdk 26, OkHttp, kotlinx.serialization, DataStore. 
 Workflow: phased, STOP after each phase, wait for "proceed". Phases 2 and 3 may run together if told.
 
 ## Status
-- [x] P0 scaffold - [ ] P1 IR+Airtel - [ ] P2 LG - [ ] P3 Sony - [ ] P4 scene/rooms
+- [x] P0 scaffold - [x] P1 IR+Airtel - [ ] P2 LG - [ ] P3 Sony - [ ] P4 scene/rooms
 - [ ] P5 always-available+automation - [ ] P6 voice - [ ] P7 bubble+release
 
 ## Layout (single module `app`, package `in.s123dive.oneremote`)
