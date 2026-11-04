@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.BugReport
 import androidx.compose.material.icons.filled.Vibration
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -51,6 +52,15 @@ fun SettingsScreen(onBack: () -> Unit, onOpenDebug: () -> Unit) {
                 leadingContent = { Icon(Icons.Default.Vibration, contentDescription = null) },
                 trailingContent = {
                     Switch(checked = settings.haptics, onCheckedChange = { v -> scope.launch { graph.settings.setHaptics(v) } })
+                },
+            )
+            HorizontalDivider()
+            ListItem(
+                headlineContent = { Text("Phone volume keys control the TV") },
+                supportingContent = { Text("While OneRemote is open: tap = volume, hold = mute") },
+                leadingContent = { Icon(Icons.AutoMirrored.Filled.VolumeUp, contentDescription = null) },
+                trailingContent = {
+                    Switch(checked = settings.volumeKeys, onCheckedChange = { v -> scope.launch { graph.settings.setVolumeKeys(v) } })
                 },
             )
             HorizontalDivider()

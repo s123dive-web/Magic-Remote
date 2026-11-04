@@ -26,11 +26,13 @@ import `in`.s123dive.oneremote.ui.setup.WifiDeviceSection
 import `in`.s123dive.oneremote.ui.remote.LgExtras
 import `in`.s123dive.oneremote.ui.remote.SonyExtras
 import `in`.s123dive.oneremote.ui.theme.OneRemoteTheme
+import `in`.s123dive.oneremote.ui.rooms.RoomsScreen
 
 object Routes {
     const val SCENE = "scene"
     const val SETTINGS = "settings"
     const val DEBUG = "debug"
+    const val ROOMS = "rooms"
     const val ADD = "add"
     fun add(roomId: String?) = "add?room=${roomId ?: ""}"
     fun scan(type: DeviceType, roomId: String?) = "scan/${type.name}?room=${roomId ?: ""}"
@@ -40,6 +42,16 @@ object Routes {
     fun pair(type: DeviceType, ip: String, roomId: String?, name: String?, instanceId: String?) =
         "pair/${type.name}?ip=$ip&room=${roomId ?: ""}&name=${java.net.URLEncoder.encode(name ?: "", "UTF-8")}&instance=${instanceId ?: ""}"
     fun device(instanceId: String) = "device/$instanceId"
+}
+
+/** Type-specific extras under the common pad (LG touchpad/text/apps, Sony apps/inputs). */
+@Composable
+fun deviceExtras(vm: `in`.s123dive.oneremote.ui.remote.RemoteViewModel, actions: `in`.s123dive.oneremote.ui.remote.PadActions) {
+    when (vm.instance.value?.type) {
+        DeviceType.LG_WEBOS -> LgExtras(vm, actions)
+        DeviceType.SONY_BRAVIA -> SonyExtras(vm, actions)
+        else -> {}
+    }
 }
 
 @Composable
@@ -57,8 +69,13 @@ fun OneRemoteApp() {
                     SceneScreen(
                         onOpenSettings = { nav.navigate(Routes.SETTINGS) },
                         onAddDevice = { roomId -> nav.navigate(Routes.add(roomId)) },
-                        onOpenRemote = { id -> nav.navigate(Routes.remote(id)) },
+                        onOpenRooms = { nav.navigate(Routes.ROOMS) },
+                        onDeviceSettings = { id -> nav.navigate(Routes.device(id)) },
+                        extras = ::deviceExtras,
                     )
+                }
+                composable(Routes.ROOMS) {
+                    RoomsScreen(onBack = { nav.popBackStack() }, onAddDevice = { roomId -> nav.navigate(Routes.add(roomId)) }, onOpenDevice = { id -> nav.navigate(Routes.device(id)) })
                 }
                 composable(Routes.SETTINGS) {
                     SettingsScreen(onBack = { nav.popBackStack() }, onOpenDebug = { nav.navigate(Routes.DEBUG) })
@@ -109,13 +126,7 @@ fun OneRemoteApp() {
                     val id = entry.arguments?.getString("id") ?: return@composable
                     DeviceRemoteScreen(
                         instanceId = id, onBack = { nav.popBackStack() }, onDeviceSettings = { nav.navigate(Routes.device(id)) },
-                        extra = { vm, actions ->
-                            when (vm.instance.value?.type) {
-                                DeviceType.LG_WEBOS -> LgExtras(vm, actions)
-                                DeviceType.SONY_BRAVIA -> SonyExtras(vm, actions)
-                                else -> {}
-                            }
-                        },
+                        extra = ::deviceExtras,
                     )
                 }
                 composable("device/{id}") { entry ->
