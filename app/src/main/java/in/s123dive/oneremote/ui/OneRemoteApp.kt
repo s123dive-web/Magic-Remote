@@ -5,6 +5,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.material.icons.filled.Mic
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -78,6 +79,12 @@ fun OneRemoteApp() {
                         onDeviceSettings = { id -> nav.navigate(Routes.device(id)) },
                         extras = ::deviceExtras,
                         macroRow = { roomId -> SceneAutomationRow(roomId, onEditMacros = { nav.navigate(Routes.macros(roomId)) }) },
+                        micFab = { _ ->
+                            val ctx = LocalContext.current
+                            androidx.compose.material3.FloatingActionButton(onClick = { ctx.startActivity(android.content.Intent(ctx, `in`.s123dive.oneremote.voice.VoiceActivity::class.java)) }) {
+                                androidx.compose.material3.Icon(androidx.compose.material.icons.Icons.Default.Mic, contentDescription = "Voice")
+                            }
+                        },
                     )
                 }
                 composable("macros?room={room}") { entry ->

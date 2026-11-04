@@ -10,7 +10,7 @@ Workflow: phased, STOP after each phase, wait for "proceed". Phases 2 and 3 may 
 
 ## Status
 - [x] P0 scaffold - [x] P1 IR+Airtel - [x] P2 LG - [x] P3 Sony - [x] P4 scene/rooms
-- [x] P5 always-available+automation - [ ] P6 voice - [ ] P7 bubble+release
+- [x] P5 always-available+automation - [x] P6 voice - [ ] P7 bubble+release
 
 ## Layout (single module `app`, package `in.s123dive.oneremote`)
 - `core/` Command, Capability, DeviceInstance, Device/Transport, Room, Macro, Log (SendLog ring buffer), AppState, Router
