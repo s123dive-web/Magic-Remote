@@ -8,6 +8,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import kotlinx.coroutines.launch
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -178,13 +181,22 @@ private fun IrTab(vm: DebugViewModel) {
 @Composable
 private fun NetworkTab(vm: DebugViewModel) {
     val caps by vm.capabilities.collectAsStateWithLifecycle()
-    Column(Modifier.fillMaxSize().padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+    val graph = appGraph()
+    Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         SectionCard("Network") {
             KeyValue("Wi-Fi / LAN", if (caps.wifiConnected) "connected" else "not connected", highlight = !caps.wifiConnected)
             KeyValue("Phone IP", caps.ipv4 ?: "–")
         }
+        val disc by graph.discovery.state.collectAsStateWithLifecycle()
+        val scope = androidx.compose.runtime.rememberCoroutineScope()
         SectionCard("Discovery") {
-            Text("SSDP discovery and raw responses appear here once the LG and Sony drivers are added (phases 2 and 3).", style = MaterialTheme.typography.bodySmall)
+            Button(enabled = !disc.running, onClick = { scope.launch { graph.discovery.run(caps.ipv4) } }) { Text(if (disc.running) "Searching…" else "Run discovery") }
+            if (disc.found.isEmpty()) Text("No devices found yet.", style = MaterialTheme.typography.bodySmall)
+            disc.found.forEach { KeyValue("${it.type.displayName} @ ${it.ip}", "${it.name} · ${it.via}") }
+            disc.note?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error) }
+        }
+        SectionCard("Raw SSDP responses (${disc.rawSsdp.size})") {
+            disc.rawSsdp.forEach { Text(it, style = MaterialTheme.typography.bodySmall, fontFamily = FontFamily.Monospace) }
         }
     }
 }

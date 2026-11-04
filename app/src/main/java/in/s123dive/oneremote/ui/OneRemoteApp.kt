@@ -19,6 +19,12 @@ import `in`.s123dive.oneremote.ui.setup.AddDeviceScreen
 import `in`.s123dive.oneremote.ui.setup.CodesetScanScreen
 import `in`.s123dive.oneremote.ui.setup.DeviceSettingsScreen
 import `in`.s123dive.oneremote.ui.setup.ExpertCodesScreen
+import `in`.s123dive.oneremote.ui.setup.FindDevicesScreen
+import `in`.s123dive.oneremote.ui.setup.LgPairScreen
+import `in`.s123dive.oneremote.ui.setup.SonyPairScreen
+import `in`.s123dive.oneremote.ui.setup.WifiDeviceSection
+import `in`.s123dive.oneremote.ui.remote.LgExtras
+import `in`.s123dive.oneremote.ui.remote.SonyExtras
 import `in`.s123dive.oneremote.ui.theme.OneRemoteTheme
 
 object Routes {
@@ -30,6 +36,9 @@ object Routes {
     fun scan(type: DeviceType, roomId: String?) = "scan/${type.name}?room=${roomId ?: ""}"
     fun expert(type: DeviceType, roomId: String?, instanceId: String?) = "expert/${type.name}?room=${roomId ?: ""}&instance=${instanceId ?: ""}"
     fun remote(instanceId: String) = "remote/$instanceId"
+    fun find(type: DeviceType, roomId: String?) = "find/${type.name}?room=${roomId ?: ""}"
+    fun pair(type: DeviceType, ip: String, roomId: String?, name: String?, instanceId: String?) =
+        "pair/${type.name}?ip=$ip&room=${roomId ?: ""}&name=${java.net.URLEncoder.encode(name ?: "", "UTF-8")}&instance=${instanceId ?: ""}"
     fun device(instanceId: String) = "device/$instanceId"
 }
 
@@ -58,8 +67,23 @@ fun OneRemoteApp() {
                 composable("add?room={room}") { entry ->
                     val room = entry.arguments?.getString("room").orNullIfBlank()
                     AddDeviceScreen(roomId = room, onBack = { nav.popBackStack() }, onPick = { type ->
-                        nav.navigate(Routes.scan(type, room))
+                        if (type == DeviceType.AIRTEL_HD) nav.navigate(Routes.scan(type, room)) else nav.navigate(Routes.find(type, room))
                     })
+                }
+                composable("find/{type}?room={room}") { entry ->
+                    val type = DeviceType.valueOf(entry.arguments?.getString("type") ?: DeviceType.LG_WEBOS.name)
+                    val room = entry.arguments?.getString("room").orNullIfBlank()
+                    FindDevicesScreen(type = type, onBack = { nav.popBackStack() }, onPick = { ip, name -> nav.navigate(Routes.pair(type, ip, room, name, null)) })
+                }
+                composable("pair/{type}?ip={ip}&room={room}&name={name}&instance={instance}") { entry ->
+                    val type = DeviceType.valueOf(entry.arguments?.getString("type") ?: DeviceType.LG_WEBOS.name)
+                    val ip = entry.arguments?.getString("ip") ?: return@composable
+                    val room = entry.arguments?.getString("room").orNullIfBlank()
+                    val name = entry.arguments?.getString("name").orNullIfBlank()?.let { java.net.URLDecoder.decode(it, "UTF-8") }
+                    val instance = entry.arguments?.getString("instance").orNullIfBlank()
+                    val done: (String) -> Unit = { id -> nav.navigate(Routes.remote(id)) { popUpTo(Routes.SCENE) } }
+                    if (type == DeviceType.LG_WEBOS) LgPairScreen(ip, name, room, instance, onBack = { nav.popBackStack() }, onDone = done)
+                    else SonyPairScreen(ip, name, room, instance, onBack = { nav.popBackStack() }, onDone = done)
                 }
                 composable("scan/{type}?room={room}") { entry ->
                     val type = DeviceType.valueOf(entry.arguments?.getString("type") ?: DeviceType.AIRTEL_HD.name)
@@ -83,7 +107,16 @@ fun OneRemoteApp() {
                 }
                 composable("remote/{id}") { entry ->
                     val id = entry.arguments?.getString("id") ?: return@composable
-                    DeviceRemoteScreen(instanceId = id, onBack = { nav.popBackStack() }, onDeviceSettings = { nav.navigate(Routes.device(id)) })
+                    DeviceRemoteScreen(
+                        instanceId = id, onBack = { nav.popBackStack() }, onDeviceSettings = { nav.navigate(Routes.device(id)) },
+                        extra = { vm, actions ->
+                            when (vm.instance.value?.type) {
+                                DeviceType.LG_WEBOS -> LgExtras(vm, actions)
+                                DeviceType.SONY_BRAVIA -> SonyExtras(vm, actions)
+                                else -> {}
+                            }
+                        },
+                    )
                 }
                 composable("device/{id}") { entry ->
                     val id = entry.arguments?.getString("id") ?: return@composable
@@ -92,6 +125,12 @@ fun OneRemoteApp() {
                         onBack = { nav.popBackStack() },
                         onExpert = { type -> nav.navigate(Routes.expert(type, null, id)) },
                         onRemoved = { nav.navigate(Routes.SCENE) { popUpTo(Routes.SCENE) { inclusive = true } } },
+                        wifiSection = { vm, instanceId ->
+                            WifiDeviceSection(vm, instanceId, onRepair = { type, ip ->
+                                val name = vm.state.value.device(instanceId)?.name
+                                nav.navigate(Routes.pair(type, ip, null, name, instanceId))
+                            })
+                        },
                     )
                 }
             }

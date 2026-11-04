@@ -1,7 +1,10 @@
 package `in`.s123dive.oneremote
 
 import android.content.Context
+import `in`.s123dive.oneremote.devices.DeviceConfig
 import `in`.s123dive.oneremote.devices.DeviceFactory
+import `in`.s123dive.oneremote.devices.WifiDrivers
+import `in`.s123dive.oneremote.net.Discovery
 import `in`.s123dive.oneremote.devices.WifiTransportFactories
 import `in`.s123dive.oneremote.core.Router
 import `in`.s123dive.oneremote.core.SendLog
@@ -33,4 +36,15 @@ class AppGraph(context: Context) {
     val wifiFactories = WifiTransportFactories()
     val registry = DeviceFactory(ir, wifiFactories)
     val router = Router(repository::current, registry, log)
+    val discovery = Discovery(context)
+
+    init {
+        WifiDrivers(
+            scope = appScope,
+            localIpv4 = { capabilities.state.value.ipv4 },
+            persist = { id, transform ->
+                repository.update { s -> s.copy(devices = s.devices.map { d -> if (d.id == id) d.copy(config = transform(DeviceConfig(d.config)).json) else d }) }
+            },
+        ).registerInto(wifiFactories)
+    }
 }
