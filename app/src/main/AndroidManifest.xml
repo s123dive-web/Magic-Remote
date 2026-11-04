@@ -9,6 +9,8 @@
     <uses-permission android:name="android.permission.CHANGE_WIFI_MULTICAST_STATE" />
     <uses-permission android:name="android.permission.TRANSMIT_IR" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.VIBRATE" />
     <!-- Requested lazily, only when the feature is used. -->
@@ -42,6 +44,35 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+            <meta-data android:name="android.app.shortcuts" android:resource="@xml/shortcuts" />
         </activity>
+
+        <activity android:name=".system.ActionActivity" android:exported="true" android:excludeFromRecents="true" android:noHistory="true" android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+        <activity android:name=".voice.VoiceActivity" android:exported="false" android:excludeFromRecents="true" android:theme="@style/Theme.OneRemote.Translucent" android:launchMode="singleTop" />
+
+        <!-- Always-available controls -->
+        <service android:name=".system.RemoteNotificationService" android:exported="false" android:foregroundServiceType="specialUse">
+            <property android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE" android:value="@string/fgs_special_use" />
+        </service>
+        <service android:name=".system.TvPowerTileService" android:exported="true" android:icon="@drawable/ic_power" android:label="@string/tile_tv_power" android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
+            <intent-filter><action android:name="android.service.quicksettings.action.QS_TILE" /></intent-filter>
+        </service>
+        <service android:name=".system.MuteTileService" android:exported="true" android:icon="@drawable/ic_mute" android:label="@string/tile_mute" android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
+            <intent-filter><action android:name="android.service.quicksettings.action.QS_TILE" /></intent-filter>
+        </service>
+        <receiver android:name=".system.SmallWidgetProvider" android:exported="true">
+            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_small_info" />
+        </receiver>
+        <receiver android:name=".system.LargeWidgetProvider" android:exported="true">
+            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_large_info" />
+        </receiver>
+        <receiver android:name=".system.RemoteActionReceiver" android:exported="false" />
+        <receiver android:name=".automation.SleepTimerReceiver" android:exported="false" />
+        <!-- Intent API for Tasker / Automate / adb -->
+        <receiver android:name=".automation.IntentApi" android:exported="true">
+            <intent-filter><action android:name="in.s123dive.oneremote.SEND" /></intent-filter>
+        </receiver>
     </application>
 </manifest>

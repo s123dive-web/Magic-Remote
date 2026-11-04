@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:paddingTop="4dp"
+    android:paddingBottom="4dp">
+    <ImageButton android:id="@+id/btn_power" style="@style/RemoteViewButton" android:src="@drawable/ic_power" android:contentDescription="Power" />
+    <ImageButton android:id="@+id/btn_vol_down" style="@style/RemoteViewButton" android:src="@drawable/ic_vol_down" android:contentDescription="Volume down" />
+    <ImageButton android:id="@+id/btn_mute" style="@style/RemoteViewButton" android:src="@drawable/ic_mute" android:contentDescription="Mute" />
+    <ImageButton android:id="@+id/btn_vol_up" style="@style/RemoteViewButton" android:src="@drawable/ic_vol_up" android:contentDescription="Volume up" />
+    <ImageButton android:id="@+id/btn_ch_down" style="@style/RemoteViewButton" android:src="@drawable/ic_ch_down" android:contentDescription="Channel down" />
+    <ImageButton android:id="@+id/btn_ch_up" style="@style/RemoteViewButton" android:src="@drawable/ic_ch_up" android:contentDescription="Channel up" />
+    <ImageButton android:id="@+id/btn_input" style="@style/RemoteViewButton" android:src="@drawable/ic_input" android:contentDescription="Input" />
+    <ImageButton android:id="@+id/btn_mic" style="@style/RemoteViewButton" android:src="@drawable/ic_mic" android:contentDescription="Voice" />
+</LinearLayout>

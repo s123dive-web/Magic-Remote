@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@drawable/widget_bg"
+    android:padding="8dp">
+    <TextView android:id="@+id/title" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/app_name" android:textColor="#E1E3E6" android:textSize="12sp" />
+    <LinearLayout android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:orientation="horizontal">
+        <ImageButton android:id="@+id/btn_power" style="@style/WidgetButton" android:src="@drawable/ic_power" android:contentDescription="Power" />
+        <ImageButton android:id="@+id/btn_mute" style="@style/WidgetButton" android:src="@drawable/ic_mute" android:contentDescription="Mute" />
+    </LinearLayout>
+    <LinearLayout android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:orientation="horizontal">
+        <ImageButton android:id="@+id/btn_vol_down" style="@style/WidgetButton" android:src="@drawable/ic_vol_down" android:contentDescription="Volume down" />
+        <ImageButton android:id="@+id/btn_vol_up" style="@style/WidgetButton" android:src="@drawable/ic_vol_up" android:contentDescription="Volume up" />
+    </LinearLayout>
+</LinearLayout>

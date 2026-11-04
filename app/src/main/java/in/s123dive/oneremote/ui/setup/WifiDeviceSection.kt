@@ -42,7 +42,13 @@ fun WifiDeviceSection(vm: SetupViewModel, instanceId: String, onRepair: (DeviceT
     var ip by remember(config.ip) { mutableStateOf(config.ip ?: "") }
     var mac by remember(config.mac, instance.mac) { mutableStateOf(instance.mac ?: config.mac ?: "") }
     var result by remember { mutableStateOf<String?>(null) }
+    var stbInput by remember(config.stbInput) { mutableStateOf(config.stbInput ?: "") }
 
+    SectionCard("Watch TV macro") {
+        OutlinedTextField(value = stbInput, onValueChange = { stbInput = it.trim() }, label = { Text("Input the box is connected to (id)") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
+        Text(if (instance.type == DeviceType.LG_WEBOS) "LG ids look like HDMI_1 (see the Inputs chips on the remote)." else "Sony ids look like extInput:hdmi?port=1 (see the Inputs chips on the remote).", style = MaterialTheme.typography.bodySmall)
+        OutlinedButton(onClick = { scope.launch { vm.updateConfig(instanceId) { c -> if (stbInput.isBlank()) c.without(DeviceConfig.STB_INPUT) else c.with(DeviceConfig.STB_INPUT, stbInput) }; graph.repository.update { `in`.s123dive.oneremote.automation.Macros.ensureBuiltIns(it.copy(macros = it.macros.filterNot { m -> m.builtIn && m.roomId == instance.roomId })) }; result = "Saved; Watch TV regenerated" } }) { Text("Save input") }
+    }
     SectionCard("Wi-Fi") {
         OutlinedTextField(value = ip, onValueChange = { ip = it.trim() }, label = { Text("IP address") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
         OutlinedTextField(value = mac, onValueChange = { mac = it.trim() }, label = { Text("MAC address (Wake-on-LAN)") }, modifier = Modifier.fillMaxWidth(), singleLine = true,

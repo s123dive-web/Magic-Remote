@@ -5,6 +5,14 @@ import `in`.s123dive.oneremote.devices.DeviceConfig
 import `in`.s123dive.oneremote.devices.DeviceFactory
 import `in`.s123dive.oneremote.devices.WifiDrivers
 import `in`.s123dive.oneremote.net.Discovery
+import `in`.s123dive.oneremote.automation.MacroRunner
+import `in`.s123dive.oneremote.automation.Macros
+import `in`.s123dive.oneremote.automation.SleepTimer
+import `in`.s123dive.oneremote.system.RemoteWidget
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import `in`.s123dive.oneremote.devices.WifiTransportFactories
 import `in`.s123dive.oneremote.core.Router
 import `in`.s123dive.oneremote.core.SendLog
@@ -37,6 +45,12 @@ class AppGraph(context: Context) {
     val registry = DeviceFactory(ir, wifiFactories)
     val router = Router(repository::current, registry, log)
     val discovery = Discovery(context)
+    val macros = MacroRunner(router)
+    val sleepTimer = SleepTimer(context)
+
+    /** Snapshot of the settings for callers that cannot suspend (receivers, tiles, widgets). */
+    val settingsSnapshot: StateFlow<SettingsStore.Settings> = settings.settings.stateIn(appScope, SharingStarted.Eagerly, SettingsStore.Settings())
+    fun lastRoomId(): String? = settingsSnapshot.value.lastRoomId ?: repository.current().rooms.firstOrNull()?.id
 
     init {
         WifiDrivers(
@@ -46,5 +60,13 @@ class AppGraph(context: Context) {
                 repository.update { s -> s.copy(devices = s.devices.map { d -> if (d.id == id) d.copy(config = transform(DeviceConfig(d.config)).json) else d }) }
             },
         ).registerInto(wifiFactories)
+        // Built-in macros follow the rooms; widgets follow rooms + favourites.
+        appScope.launch {
+            repository.state.collect { state ->
+                val withBuiltIns = Macros.ensureBuiltIns(state)
+                if (withBuiltIns !== state) repository.update { Macros.ensureBuiltIns(it) }
+                runCatching { RemoteWidget.refresh(context) }
+            }
+        }
     }
 }

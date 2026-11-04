@@ -1,4 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">OneRemote</string>
+    <string name="widget_small_desc">Power, volume and mute for the TV</string>
+    <string name="widget_large_desc">Power, volume, channels, OK and favourite channels</string>
+    <string name="shortcut_watch_tv">Watch TV</string>
+    <string name="shortcut_all_off">All off</string>
+    <string name="shortcut_mute">Mute</string>
+    <string name="tile_tv_power">TV Power</string>
+    <string name="tile_mute">TV Mute</string>
+    <string name="fgs_special_use">Always-available TV remote buttons in the notification shade</string>
 </resources>

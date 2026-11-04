@@ -27,12 +27,17 @@ import `in`.s123dive.oneremote.ui.remote.LgExtras
 import `in`.s123dive.oneremote.ui.remote.SonyExtras
 import `in`.s123dive.oneremote.ui.theme.OneRemoteTheme
 import `in`.s123dive.oneremote.ui.rooms.RoomsScreen
+import `in`.s123dive.oneremote.ui.macros.MacrosScreen
+import `in`.s123dive.oneremote.ui.settings.BackupScreen
+import `in`.s123dive.oneremote.ui.scene.SceneAutomationRow
 
 object Routes {
     const val SCENE = "scene"
     const val SETTINGS = "settings"
     const val DEBUG = "debug"
     const val ROOMS = "rooms"
+    const val BACKUP = "backup"
+    fun macros(roomId: String?) = "macros?room=${roomId ?: ""}"
     const val ADD = "add"
     fun add(roomId: String?) = "add?room=${roomId ?: ""}"
     fun scan(type: DeviceType, roomId: String?) = "scan/${type.name}?room=${roomId ?: ""}"
@@ -72,13 +77,18 @@ fun OneRemoteApp() {
                         onOpenRooms = { nav.navigate(Routes.ROOMS) },
                         onDeviceSettings = { id -> nav.navigate(Routes.device(id)) },
                         extras = ::deviceExtras,
+                        macroRow = { roomId -> SceneAutomationRow(roomId, onEditMacros = { nav.navigate(Routes.macros(roomId)) }) },
                     )
                 }
+                composable("macros?room={room}") { entry ->
+                    MacrosScreen(roomId = entry.arguments?.getString("room").orNullIfBlank(), onBack = { nav.popBackStack() })
+                }
+                composable(Routes.BACKUP) { BackupScreen(onBack = { nav.popBackStack() }) }
                 composable(Routes.ROOMS) {
                     RoomsScreen(onBack = { nav.popBackStack() }, onAddDevice = { roomId -> nav.navigate(Routes.add(roomId)) }, onOpenDevice = { id -> nav.navigate(Routes.device(id)) })
                 }
                 composable(Routes.SETTINGS) {
-                    SettingsScreen(onBack = { nav.popBackStack() }, onOpenDebug = { nav.navigate(Routes.DEBUG) })
+                    SettingsScreen(onBack = { nav.popBackStack() }, onOpenDebug = { nav.navigate(Routes.DEBUG) }, onOpenBackup = { nav.navigate(Routes.BACKUP) }, onOpenMacros = { nav.navigate(Routes.macros(null)) })
                 }
                 composable(Routes.DEBUG) { DebugConsoleScreen(onBack = { nav.popBackStack() }) }
                 composable("add?room={room}") { entry ->

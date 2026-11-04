@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
+import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.preferencesDataStore
@@ -20,6 +21,8 @@ class SettingsStore(private val context: Context) {
         val volumeKeys: Boolean = true,
         val lastRoomId: String? = null,
         val tvZoneCollapsed: Boolean = false,
+        val sleepTimerAt: Long? = null,
+        val sleepTimerRoom: String? = null,
     )
 
     val settings: Flow<Settings> = context.settingsDataStore.data.map { p ->
@@ -29,6 +32,8 @@ class SettingsStore(private val context: Context) {
             volumeKeys = p[VOLUME_KEYS] ?: true,
             lastRoomId = p[LAST_ROOM],
             tvZoneCollapsed = p[TV_COLLAPSED] ?: false,
+            sleepTimerAt = p[SLEEP_AT],
+            sleepTimerRoom = p[SLEEP_ROOM],
         )
     }
 
@@ -37,6 +42,8 @@ class SettingsStore(private val context: Context) {
     suspend fun setVolumeKeys(enabled: Boolean) = context.settingsDataStore.edit { it[VOLUME_KEYS] = enabled }
     suspend fun setLastRoom(roomId: String) = context.settingsDataStore.edit { it[LAST_ROOM] = roomId }
     suspend fun setTvZoneCollapsed(collapsed: Boolean) = context.settingsDataStore.edit { it[TV_COLLAPSED] = collapsed }
+    suspend fun setSleepTimer(roomId: String, at: Long) = context.settingsDataStore.edit { it[SLEEP_AT] = at; it[SLEEP_ROOM] = roomId }
+    suspend fun clearSleepTimer() = context.settingsDataStore.edit { it.remove(SLEEP_AT); it.remove(SLEEP_ROOM) }
 
     private companion object {
         val HAPTICS = booleanPreferencesKey("haptics")
@@ -44,5 +51,7 @@ class SettingsStore(private val context: Context) {
         val VOLUME_KEYS = booleanPreferencesKey("volume_keys")
         val LAST_ROOM = stringPreferencesKey("last_room")
         val TV_COLLAPSED = booleanPreferencesKey("tv_zone_collapsed")
+        val SLEEP_AT = longPreferencesKey("sleep_at")
+        val SLEEP_ROOM = stringPreferencesKey("sleep_room")
     }
 }

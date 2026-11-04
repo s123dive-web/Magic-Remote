@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut android:shortcutId="watch_tv" android:enabled="true" android:icon="@drawable/ic_power" android:shortcutShortLabel="@string/shortcut_watch_tv" android:shortcutLongLabel="@string/shortcut_watch_tv">
+        <intent android:action="android.intent.action.VIEW" android:targetPackage="in.s123dive.oneremote" android:targetClass="in.s123dive.oneremote.system.ActionActivity">
+            <extra android:name="macro" android:value="Watch TV" />
+        </intent>
+    </shortcut>
+    <shortcut android:shortcutId="all_off" android:enabled="true" android:icon="@drawable/ic_power" android:shortcutShortLabel="@string/shortcut_all_off" android:shortcutLongLabel="@string/shortcut_all_off">
+        <intent android:action="android.intent.action.VIEW" android:targetPackage="in.s123dive.oneremote" android:targetClass="in.s123dive.oneremote.system.ActionActivity">
+            <extra android:name="macro" android:value="All off" />
+        </intent>
+    </shortcut>
+    <shortcut android:shortcutId="mute" android:enabled="true" android:icon="@drawable/ic_mute" android:shortcutShortLabel="@string/shortcut_mute" android:shortcutLongLabel="@string/shortcut_mute">
+        <intent android:action="android.intent.action.VIEW" android:targetPackage="in.s123dive.oneremote" android:targetClass="in.s123dive.oneremote.system.ActionActivity">
+            <extra android:name="cmd" android:value="MUTE" />
+            <extra android:name="role" android:value="TV" />
+        </intent>
+    </shortcut>
+</shortcuts>
