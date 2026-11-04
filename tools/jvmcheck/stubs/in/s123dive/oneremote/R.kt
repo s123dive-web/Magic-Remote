@@ -7,7 +7,7 @@ object R {
         const val btn_ch_up = 15; const val btn_input = 16; const val btn_mic = 17; const val btn_ok = 18; const val title = 19
         const val fav1 = 20; const val fav2 = 21; const val fav3 = 22
     }
-    object drawable { const val ic_power = 30; const val ic_mute = 31; const val ic_notification = 32; const val ic_launcher_foreground = 33; const val ic_mic = 34 }
+    object drawable { const val ic_power = 30; const val ic_mute = 31; const val ic_notification = 32; const val ic_launcher_foreground = 33; const val ic_mic = 34; const val ic_vol_down = 35; const val ic_vol_up = 36; const val ic_ch_down = 37; const val ic_ch_up = 38; const val ic_ok = 39; const val ic_input = 41 }
     object mipmap { const val ic_launcher = 40 }
     object string { const val app_name = 50 }
 }

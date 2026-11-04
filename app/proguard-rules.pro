@@ -9,3 +9,10 @@
 # OkHttp
 -dontwarn okhttp3.**
 -dontwarn okio.**
+
+# OkHttp optional TLS providers
+-dontwarn org.bouncycastle.**
+-dontwarn org.conscrypt.**
+-dontwarn org.openjsse.**
+# Keep enum names used in Intent extras (Role / Source / DeviceType are looked up by name)
+-keepclassmembers enum in.s123dive.oneremote.** { *; }

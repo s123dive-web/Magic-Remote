@@ -2,6 +2,7 @@ package `in`.s123dive.oneremote.ui.scene
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -139,13 +140,7 @@ fun SceneScreen(
         }
         HorizontalPager(state = pager, modifier = Modifier.fillMaxSize().padding(padding)) { page ->
             if (page == 0) {
-                Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(12.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                        AssistChip(onClick = {}, label = { Text(last?.transport?.badge ?: "–") })
-                        last?.let { Text(it.text, style = MaterialTheme.typography.bodySmall, color = if (it.ok) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.error, maxLines = 1) }
-                    }
-                    macroRow(room.id)
-                    // ---- TV zone ----
+                val tvZone: @Composable () -> Unit = {
                     ui.tv?.let { tv ->
                         val a = actions(Role.TV)
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
@@ -163,10 +158,10 @@ fun SceneScreen(
                             if (ui.stb == null) { NavPad(a); DigitPad(a); ColourRow(a); PlaybackRow(a) }
                         }
                     }
-                    // ---- STB zone ----
+                }
+                val stbZone: @Composable () -> Unit = {
                     ui.stb?.let { stb ->
                         val a = actions(Role.STB)
-                        HorizontalDivider()
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                             Text("Box · ${stb.name}", style = MaterialTheme.typography.titleSmall)
                             IconButton(onClick = { onDeviceSettings(stb.id) }) { Icon(Icons.Default.Settings, contentDescription = "Box settings") }
@@ -181,7 +176,27 @@ fun SceneScreen(
                         NavPad(a)
                         ColourRow(a)
                     }
-                    Text("Swipe left for the full remotes · long-press a key to change which device it goes to", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+                BoxWithConstraints(Modifier.fillMaxSize()) {
+                    val landscape = maxWidth > maxHeight && ui.tv != null && ui.stb != null
+                    Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(12.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                            AssistChip(onClick = {}, label = { Text(last?.transport?.badge ?: "–") })
+                            last?.let { Text(it.text, style = MaterialTheme.typography.bodySmall, color = if (it.ok) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.error, maxLines = 1) }
+                        }
+                        macroRow(room.id)
+                        if (landscape) {
+                            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(10.dp)) { tvZone() }
+                                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(10.dp)) { stbZone() }
+                            }
+                        } else {
+                            tvZone()
+                            if (ui.tv != null && ui.stb != null) HorizontalDivider()
+                            stbZone()
+                        }
+                        Text("Swipe left for the full remotes · long-press a key to change which device it goes to", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
                 }
             } else {
                 val device = pagerDevices[page - 1]

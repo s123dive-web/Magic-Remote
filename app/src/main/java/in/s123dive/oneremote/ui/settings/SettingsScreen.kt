@@ -16,6 +16,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.Backup
+import androidx.compose.material.icons.filled.BubbleChart
 import androidx.compose.material.icons.filled.BugReport
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.PlayArrow
@@ -31,12 +32,14 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import `in`.s123dive.oneremote.BuildConfig
 import `in`.s123dive.oneremote.data.SettingsStore
+import `in`.s123dive.oneremote.system.BubbleLauncher
 import `in`.s123dive.oneremote.system.RemoteNotificationService
 import `in`.s123dive.oneremote.ui.appGraph
 import kotlinx.coroutines.launch
@@ -48,6 +51,7 @@ fun SettingsScreen(onBack: () -> Unit, onOpenDebug: () -> Unit, onOpenBackup: ()
     val context = LocalContext.current
     val settings by graph.settings.settings.collectAsStateWithLifecycle(SettingsStore.Settings())
     val scope = rememberCoroutineScope()
+    var bubbleNote by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf<String?>(null) }
 
     fun startNotificationRemote() { scope.launch { graph.settings.setNotificationRemote(true) }; RemoteNotificationService.start(context) }
     val askNotifications = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted -> if (granted) startNotificationRemote() }
@@ -71,6 +75,20 @@ fun SettingsScreen(onBack: () -> Unit, onOpenDebug: () -> Unit, onOpenBackup: ()
                 supportingContent = { Text("Power, volume, mute, channels, input and mic in the notification shade") },
                 leadingContent = { Icon(Icons.Default.Notifications, contentDescription = null) },
                 trailingContent = { Switch(checked = settings.notificationRemote, onCheckedChange = ::toggleNotificationRemote) },
+            )
+            HorizontalDivider()
+            ListItem(
+                modifier = Modifier.fillMaxWidth().clickable {
+                    when (val o = BubbleLauncher.show(context)) {
+                        BubbleLauncher.Outcome.Shown -> bubbleNote = if (Build.VERSION.SDK_INT >= 30) "Bubble shown (check the bubble at the screen edge)" else "Floating remote shown"
+                        is BubbleLauncher.Outcome.NeedsPermission -> { bubbleNote = o.message; runCatching { context.startActivity(o.intent) } }
+                        is BubbleLauncher.Outcome.Unavailable -> bubbleNote = o.reason
+                    }
+                },
+                headlineContent = { Text("Floating bubble remote") },
+                supportingContent = { Text(bubbleNote ?: "Mini remote over other apps (Android 11+: bubble; older: overlay window)") },
+                leadingContent = { Icon(Icons.Default.BubbleChart, contentDescription = null) },
+                trailingContent = { androidx.compose.material3.TextButton(onClick = { BubbleLauncher.hide(context); bubbleNote = "Hidden" }) { Text("Hide") } },
             )
             HorizontalDivider()
             ListItem(

@@ -51,7 +51,7 @@ class VoiceController(private val context: Context, private val graph: AppGraph)
     fun start(language: String?) {
         if (!available) { _state.update { it.copy(error = "Speech recognition is not available on this phone") }; return }
         stop()
-        val r = if (onDevice) SpeechRecognizer.createOnDeviceSpeechRecognizer(context) else SpeechRecognizer.createSpeechRecognizer(context)
+        val r = if (Build.VERSION.SDK_INT >= 31 && onDevice) SpeechRecognizer.createOnDeviceSpeechRecognizer(context) else SpeechRecognizer.createSpeechRecognizer(context)
         recognizer = r
         r.setRecognitionListener(object : RecognitionListener {
             override fun onReadyForSpeech(params: Bundle?) { _state.update { it.copy(listening = true, partial = "", transcript = null, action = null, result = null, error = null) } }

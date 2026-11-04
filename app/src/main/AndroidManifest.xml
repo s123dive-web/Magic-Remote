@@ -50,6 +50,12 @@
         <activity android:name=".system.ActionActivity" android:exported="true" android:excludeFromRecents="true" android:noHistory="true" android:theme="@android:style/Theme.Translucent.NoTitleBar" />
         <activity android:name=".voice.VoiceActivity" android:exported="false" android:excludeFromRecents="true" android:theme="@style/Theme.OneRemote.Translucent" android:launchMode="singleTop" />
 
+        <!-- Floating remote -->
+        <activity android:name=".ui.bubble.BubbleActivity" android:exported="false" android:allowEmbedded="true" android:documentLaunchMode="always" android:resizeableActivity="true" android:theme="@style/Theme.OneRemote" />
+        <service android:name=".system.OverlayService" android:exported="false" android:foregroundServiceType="specialUse">
+            <property android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE" android:value="@string/fgs_special_use" />
+        </service>
+
         <!-- Always-available controls -->
         <service android:name=".system.RemoteNotificationService" android:exported="false" android:foregroundServiceType="specialUse">
             <property android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE" android:value="@string/fgs_special_use" />
