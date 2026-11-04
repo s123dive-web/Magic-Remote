@@ -15,3 +15,6 @@ captures/
 keystore.properties
 # OS
 .DS_Store
+# Session deliverables (already sent to the user); not source
+/oneremote-all-phases.bundle
+/oneremote-source.zip
