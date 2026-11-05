@@ -71,17 +71,19 @@ class LgClient(
         if (isConnected) return Result.Ok(info)
         _state.value = State.Connecting
         val order = if (preferSecure) listOf(true, false) else listOf(false, true)
-        var lastError = "no attempt"
+        val errors = ArrayList<String>()
         for (useSecure in order) {
             val opened = open(useSecure)
-            if (opened != null) { lastError = opened; continue }
+            if (opened != null) { errors += opened; continue }
             secure = useSecure
             val r = handshake()
             if (r is Result.Ok) { _state.value = State.Connected(info); return r }
-            lastError = (r as Result.Err).reason
+            val reason = (r as Result.Err).reason
+            errors += "${if (useSecure) "wss:3001" else "ws:3000"}: $reason"
             closeSocketQuietly()
-            if (!lastError.startsWith("connection")) break // protocol-level failure: switching port will not help
+            if (!reason.startsWith("connection")) break // protocol-level failure: switching port will not help
         }
+        val lastError = errors.joinToString(" | ")
         _state.value = State.Failed(lastError)
         return Result.Err(lastError)
     }
@@ -95,13 +97,14 @@ class LgClient(
             override fun onOpen(webSocket: WebSocket, response: Response) { opened.complete(null) }
             override fun onMessage(webSocket: WebSocket, text: String) { handle(text) }
             override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {
-                opened.complete("connection to $url failed: ${t.message ?: t::class.simpleName}")
+                val http = response?.let { " (HTTP ${it.code} ${it.message})" } ?: ""
+                opened.complete("connection to $url failed: ${t::class.simpleName}: ${t.message}$http")
                 dropped("socket failure: ${t.message}")
             }
             override fun onClosed(webSocket: WebSocket, code: Int, reason: String) { dropped("closed $code $reason") }
             override fun onClosing(webSocket: WebSocket, code: Int, reason: String) { webSocket.close(code, reason) }
         })
-        val err = withTimeoutOrNull(Http.TIMEOUT_SEC * 1000 + 500) { opened.await() } ?: "connection to $url timed out"
+        val err = withTimeoutOrNull(Http.WS_CONNECT_SEC * 1000 + 2000) { opened.await() } ?: "connection to $url timed out after ${Http.WS_CONNECT_SEC + 2} s (no TLS/HTTP reply)"
         if (err != null) { ws.cancel(); return err }
         socket = ws
         return null

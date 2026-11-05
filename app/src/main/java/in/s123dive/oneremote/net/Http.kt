@@ -10,8 +10,17 @@ import javax.net.ssl.X509TrustManager
 /** Shared OkHttp clients: every LAN call has a 3 s budget per phase of the request. */
 object Http {
     const val TIMEOUT_SEC = 3L
+    /** LG TVs take seconds to finish a TLS handshake on 3001; the WebSocket open gets a longer budget. */
+    const val WS_CONNECT_SEC = 8L
+
+    /** Embedded WebSocket servers (LG) mishandle permessage-deflate; never offer it. */
+    private val noWsCompression = okhttp3.Interceptor { chain ->
+        val req = chain.request()
+        if (req.header("Sec-WebSocket-Extensions") != null) chain.proceed(req.newBuilder().removeHeader("Sec-WebSocket-Extensions").build()) else chain.proceed(req)
+    }
 
     val plain: OkHttpClient = OkHttpClient.Builder()
+        .addNetworkInterceptor(noWsCompression)
         .connectTimeout(TIMEOUT_SEC, TimeUnit.SECONDS)
         .readTimeout(TIMEOUT_SEC, TimeUnit.SECONDS)
         .writeTimeout(TIMEOUT_SEC, TimeUnit.SECONDS)
@@ -35,12 +44,13 @@ object Http {
         val b = plain.newBuilder()
             .sslSocketFactory(ctx.socketFactory, tm)
             .hostnameVerifier { name, _ -> name == host }
-        if (forWebSocket) b.readTimeout(0, TimeUnit.MILLISECONDS).callTimeout(0, TimeUnit.MILLISECONDS).pingInterval(15, TimeUnit.SECONDS)
+        if (forWebSocket) b.connectTimeout(WS_CONNECT_SEC, TimeUnit.SECONDS).readTimeout(0, TimeUnit.MILLISECONDS).callTimeout(0, TimeUnit.MILLISECONDS).pingInterval(15, TimeUnit.SECONDS)
         return b.build()
     }
 
     /** Plain client tuned for long-lived WebSockets (no read timeout, keepalive pings). */
     val webSocket: OkHttpClient = plain.newBuilder()
+        .connectTimeout(WS_CONNECT_SEC, TimeUnit.SECONDS)
         .readTimeout(0, TimeUnit.MILLISECONDS)
         .callTimeout(0, TimeUnit.MILLISECONDS)
         .pingInterval(15, TimeUnit.SECONDS)

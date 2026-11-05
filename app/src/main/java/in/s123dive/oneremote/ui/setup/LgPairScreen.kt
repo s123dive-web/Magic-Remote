@@ -55,6 +55,8 @@ fun LgPairScreen(ip: String, suggestedName: String?, roomId: String?, existingId
     var instanceId by remember { mutableStateOf(existingId) }
     var status by remember { mutableStateOf<String?>(null) }
     var busy by remember { mutableStateOf(false) }
+    var diagBusy by remember { mutableStateOf(false) }
+    var diag by remember { mutableStateOf<List<String>>(emptyList()) }
     val client = instanceId?.let { id -> state.device(id)?.let { graph.registry.get(it) } }?.transports?.filterIsInstance<LgTransport>()?.firstOrNull()?.client
     val clientState by (client?.state ?: remember { kotlinx.coroutines.flow.MutableStateFlow<LgClient.State>(LgClient.State.Disconnected) }).collectAsStateWithLifecycle()
 
@@ -69,7 +71,7 @@ fun LgPairScreen(ip: String, suggestedName: String?, roomId: String?, existingId
             OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text("Name") }, modifier = Modifier.fillMaxWidth())
             KeyValue("IP", ip)
             SectionCard("Pairing") {
-                Text("The TV will show \"Allow this remote to connect?\". Choose Yes with the TV remote. On the TV, enable Settings → General → Mobile TV On → \"Turn on via Wi-Fi\" so power-on (Wake-on-LAN) works.", style = MaterialTheme.typography.bodySmall)
+                Text("The TV will show \"Allow this remote to connect?\". Choose Yes with the TV remote. If nothing appears, check the TV: Settings → Network (or General → Devices → External devices) → \"LG Connect Apps\" / \"Mobile Connection\" must be On. For power-on over Wi-Fi also enable \"Turn on via Wi-Fi\" / \"TV On with Mobile\".", style = MaterialTheme.typography.bodySmall)
                 when (val s = clientState) {
                     LgClient.State.Connecting -> { LinearProgressIndicator(Modifier.fillMaxWidth()); Text("Connecting (ws:3000, then wss:3001)…") }
                     LgClient.State.WaitingForPrompt -> { LinearProgressIndicator(Modifier.fillMaxWidth()); Text("Accept the prompt on the TV now.", color = MaterialTheme.colorScheme.tertiary) }
@@ -110,6 +112,18 @@ fun LgPairScreen(ip: String, suggestedName: String?, roomId: String?, existingId
                     },
                 ) { Text(if (clientState is LgClient.State.Connected) "Pair again" else "Pair") }
                 if (instanceId != null) Button(modifier = Modifier.fillMaxWidth(), onClick = { onDone(instanceId!!) }) { Text("Done") }
+            }
+            SectionCard("Diagnose") {
+                Text("Probes TCP, HTTP, TLS and the WebSocket upgrade on ports 3000/3001 and writes each line to the Debug console.", style = MaterialTheme.typography.bodySmall)
+                androidx.compose.material3.OutlinedButton(enabled = !diagBusy, onClick = {
+                    diagBusy = true; diag = emptyList()
+                    scope.launch {
+                        val lines = `in`.s123dive.oneremote.lg.LgDiagnostics.run(ip)
+                        lines.forEach { line -> graph.log.add(`in`.s123dive.oneremote.core.LogEntry(System.currentTimeMillis(), "-", "DEBUG", "lg diag $ip", "Wi-Fi", line.substringBefore(':'), line.substringAfter(": "), 0)) }
+                        diag = lines; diagBusy = false
+                    }
+                }) { Text(if (diagBusy) "Probing…" else "Diagnose connection") }
+                diag.forEach { Text(it, style = MaterialTheme.typography.bodySmall, fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace) }
             }
         }
     }
