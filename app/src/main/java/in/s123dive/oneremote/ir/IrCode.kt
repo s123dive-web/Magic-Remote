@@ -26,6 +26,20 @@ sealed interface IrCode {
         override fun describe() = SircEncoder.describe(command, address, bits, extended)
     }
 
+    @Serializable @SerialName("rc5")
+    data class Rc5(val address: Int, val command: Int) : IrCode {
+        override val carrierHz get() = Rc5Encoder.CARRIER_HZ
+        override fun pattern() = Rc5Encoder.press(address, command)
+        override fun describe() = Rc5Encoder.describe(address, command)
+    }
+
+    @Serializable @SerialName("rc6")
+    data class Rc6(val address: Int, val command: Int) : IrCode {
+        override val carrierHz get() = Rc6Encoder.CARRIER_HZ
+        override fun pattern() = Rc6Encoder.press(address, command)
+        override fun describe() = Rc6Encoder.describe(address, command)
+    }
+
     /** A captured raw pattern (microseconds, mark first) at a given carrier; used for non-NEC boxes. */
     @Serializable @SerialName("raw")
     data class Raw(override val carrierHz: Int, val marks: List<Int>, val label: String = "raw") : IrCode {

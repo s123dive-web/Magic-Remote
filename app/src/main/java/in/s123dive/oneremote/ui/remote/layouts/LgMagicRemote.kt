@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -113,6 +114,6 @@ fun LgMagicRemote(a: PadActions, onMic: () -> Unit, onApp: (String) -> Unit) {
             Key(a, Command.Pause, "‖", width = 30.dp, height = 22.dp, shape = CircleShape, icon = Icons.Default.Pause)
         }
         Text("LG", color = c.grey, fontSize = 10.sp, modifier = Modifier.padding(top = 2.dp))
+        Touchpad(a, Modifier.padding(top = 4.dp).height(90.dp))
     }
-    Touchpad(a, Modifier.padding(top = 8.dp))
 }

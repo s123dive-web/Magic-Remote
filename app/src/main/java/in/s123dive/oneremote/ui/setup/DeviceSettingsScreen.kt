@@ -92,7 +92,7 @@ fun DeviceSettingsScreen(
                 OutlinedTextField(value = delay, onValueChange = { delay = it.filter(Char::isDigit) }, label = { Text("Delay between digits (ms)") }, modifier = Modifier.fillMaxWidth())
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     OutlinedButton(onClick = { onExpert(instance.type) }) { Text("Expert mode") }
-                    if (config.necAddress != null) OutlinedButton(onClick = onKeyFinder) { Text("Find more keys") }
+                    if (config.customCodes.containsKey(`in`.s123dive.oneremote.core.Command.Power.key)) OutlinedButton(onClick = onKeyFinder) { Text("Find more keys") }
                 }
             }
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {

@@ -40,7 +40,6 @@ import `in`.s123dive.oneremote.core.DeviceType
 import `in`.s123dive.oneremote.core.TransportKind
 import `in`.s123dive.oneremote.devices.DeviceConfig
 import `in`.s123dive.oneremote.ir.CodesetScanner
-import `in`.s123dive.oneremote.ir.IrCode
 import `in`.s123dive.oneremote.ir.NecSweep
 import `in`.s123dive.oneremote.ir.codesets.Codesets
 import `in`.s123dive.oneremote.ui.SectionCard
@@ -63,7 +62,7 @@ fun CodesetScanScreen(type: DeviceType, roomId: String?, onBack: () -> Unit, onD
     val caps by vm.capabilities.collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
     var mode by remember { mutableStateOf(Mode.KNOWN) }
-    val candidates = remember(type, mode) { if (mode == Mode.KNOWN) CodesetScanner.fromCodesets(Codesets.scanCandidates(type)) else NecSweep.powerSweep() }
+    val candidates = remember(type, mode) { if (mode == Mode.KNOWN) CodesetScanner.fromCodesets(Codesets.scanCandidates(type)) else NecSweep.deepSweep() }
     val scanner = remember(candidates) { CodesetScanner(candidates, send = { c -> graph.sendIrDiagnostic("scan ${c.label}", c.code) }, intervalMs = mode.intervalMs) }
     val state by scanner.state.collectAsStateWithLifecycle()
     var name by remember { mutableStateOf(if (type == DeviceType.AIRTEL_HD) "Airtel box" else type.displayName) }
@@ -76,9 +75,7 @@ fun CodesetScanScreen(type: DeviceType, roomId: String?, onBack: () -> Unit, onD
                 val id = vm.addDevice(type, name.ifBlank { c.label }, roomId, listOf(TransportKind.IR), DeviceConfig.empty().with(DeviceConfig.CODESET_ID, c.codesetId))
                 onDone(id)
             } else {
-                val nec = c.code as IrCode.Nec
-                val cfg = DeviceConfig.empty().with(DeviceConfig.NEC_ADDRESS, nec.address).with(DeviceConfig.NEC_EXTENDED, nec.extended)
-                    .withCustomCodes(mapOf(Command.Power.key to nec))
+                val cfg = DeviceConfig.empty().withCustomCodes(mapOf(Command.Power.key to c.code))
                 val id = vm.addDevice(type, name.ifBlank { "Airtel box" }, roomId, listOf(TransportKind.IR), cfg)
                 onKeyFinder(id)
             }
@@ -104,7 +101,7 @@ fun CodesetScanScreen(type: DeviceType, roomId: String?, onBack: () -> Unit, onD
             SectionCard(if (mode == Mode.KNOWN) "Known code sets (${candidates.size})" else "Deep sweep (${candidates.size} codes, about ${candidates.size * mode.intervalMs / 60000} min)") {
                 Text(
                     if (mode == Mode.KNOWN) "Point the phone at the box, 1–2 m away, with a clear line of sight. Each known code set's Power code is sent every ${mode.intervalMs / 1000.0} s. Watch the BOX (its light or the picture it sends), not the TV: the TV reacting to a code means that code is the TV's, not the box's. Tap \"It reacted!\" the moment the box turns on or off; the app then replays the last codes to confirm which one it was."
-                    else "Tries every common NEC address and Power command. Keep the phone pointed at the box and tap \"It reacted!\" when it turns on or off. Pause any time; the position is kept.",
+                    else "Tries RC5 and RC6 (Philips, used by Thomson/Technicolor boxes) power codes first, then every common NEC address and Power command, then the full RC5/RC6 space. Keep the phone pointed at the box and tap \"It reacted!\" when it turns on or off. Pause any time; the position is kept.",
                     style = MaterialTheme.typography.bodySmall,
                 )
                 LinearProgressIndicator(progress = { state.progress }, modifier = Modifier.fillMaxWidth())

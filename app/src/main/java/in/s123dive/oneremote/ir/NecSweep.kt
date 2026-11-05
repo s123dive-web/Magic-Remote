@@ -24,4 +24,27 @@ object NecSweep {
     /** All 256 command bytes on one known address, skipping the ones already mapped. */
     fun commandSweep(address: Int, extended: Boolean, skip: Set<Int> = emptySet()): List<Candidate> =
         (0..0xFF).filter { it !in skip }.map { Candidate(NecEncoder.describe(address, it, extended), IrCode.Nec(address, it, extended)) }
+
+    /** Philips protocols used by Thomson / Technicolor boxes: standard power command is 12. */
+    fun rc5PowerPass(): List<Candidate> = (0..31).map { Candidate(Rc5Encoder.describe(it, 12), IrCode.Rc5(it, 12)) }
+    fun rc6PowerPass(): List<Candidate> = (0..255).map { Candidate(Rc6Encoder.describe(it, 12), IrCode.Rc6(it, 12)) }
+    fun rc5Full(): List<Candidate> = buildList { for (cmd in 0..63) if (cmd != 12) for (addr in 0..31) add(Candidate(Rc5Encoder.describe(addr, cmd), IrCode.Rc5(addr, cmd))) }
+    fun rc6Common(): List<Candidate> = buildList { for (cmd in 0..255) if (cmd != 12) for (addr in 0..15) add(Candidate(Rc6Encoder.describe(addr, cmd), IrCode.Rc6(addr, cmd))) }
+
+    /**
+     * The deep sweep, cheapest and likeliest first: RC5 power (32), RC6 power (256), NEC power
+     * commands across every address (~6k), then every RC5 code (~2k) and RC6 on low addresses (~4k).
+     */
+    fun deepSweep(): List<Candidate> = rc5PowerPass() + rc6PowerPass() + powerSweep() + rc5Full() + rc6Common()
+
+    /** The per-key sweep for whatever protocol/address Power was found on. */
+    fun commandSweepFor(power: IrCode, skip: Set<Int> = emptySet()): List<Candidate> = when (power) {
+        is IrCode.Nec -> commandSweep(power.address, power.extended, skip)
+        is IrCode.Rc5 -> (0..63).filter { it !in skip }.map { Candidate(Rc5Encoder.describe(power.address, it), IrCode.Rc5(power.address, it)) }
+        is IrCode.Rc6 -> (0..255).filter { it !in skip }.map { Candidate(Rc6Encoder.describe(power.address, it), IrCode.Rc6(power.address, it)) }
+        is IrCode.Sirc -> (0..127).filter { it !in skip }.map { Candidate(SircEncoder.describe(it, power.address, power.bits), IrCode.Sirc(it, power.address, power.bits)) }
+        is IrCode.Raw -> emptyList()
+    }
+
+    fun commandOf(code: IrCode): Int? = when (code) { is IrCode.Nec -> code.command; is IrCode.Rc5 -> code.command; is IrCode.Rc6 -> code.command; is IrCode.Sirc -> code.command; is IrCode.Raw -> null }
 }

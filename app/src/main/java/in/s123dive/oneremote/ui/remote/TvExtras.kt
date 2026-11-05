@@ -50,7 +50,7 @@ fun Touchpad(a: PadActions, modifier: Modifier = Modifier) {
     Box(
         modifier
             .fillMaxWidth()
-            .height(200.dp)
+            .then(if (modifier == Modifier) Modifier.height(200.dp) else Modifier)
             .clip(RoundedCornerShape(16.dp))
             .background(if (enabled) MaterialTheme.colorScheme.surfaceVariant else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f))
             .pointerInput(enabled) {

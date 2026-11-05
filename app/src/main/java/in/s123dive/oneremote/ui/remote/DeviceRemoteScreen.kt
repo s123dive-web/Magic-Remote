@@ -12,6 +12,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -26,6 +27,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -70,6 +73,7 @@ fun DeviceRemoteScreen(
 private fun launchAppByName(vm: RemoteViewModel, name: String) = vm.launchAppByName(name)
 
 /** The remote itself: used by the stand-alone screen and by the Scene pager. */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DeviceRemotePage(
     instanceId: String,
@@ -97,36 +101,42 @@ fun DeviceRemotePage(
         )
     }
 
+    var sheet by remember { mutableStateOf(false) }
+    val context = androidx.compose.ui.platform.LocalContext.current
     Box(modifier.fillMaxSize()) {
-        Column(
-            Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(12.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
-        ) {
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                Text(instance?.name ?: "Remote", style = MaterialTheme.typography.titleMedium)
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    AssistChip(onClick = {}, label = { Text(last?.transport?.badge ?: instance?.transports?.joinToString("/") { it.badge } ?: "–") })
-                    IconButton(onClick = onDeviceSettings) { Icon(Icons.Default.Settings, contentDescription = "Device settings") }
+        Column(Modifier.fillMaxSize()) {
+            Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 2.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                Text(last?.text ?: (vm.unavailableReason() ?: "Ready"), style = MaterialTheme.typography.labelSmall, color = if (last?.ok == false || vm.unavailableReason() != null) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, modifier = Modifier.weight(1f))
+                AssistChip(onClick = {}, label = { Text(last?.transport?.badge ?: instance?.transports?.joinToString("/") { it.badge } ?: "–") })
+                if (instance?.type != DeviceType.AIRTEL_HD) IconButton(onClick = { sheet = true }) { Icon(androidx.compose.material.icons.Icons.Default.MoreVert, contentDescription = "Apps, inputs, typing") }
+                IconButton(onClick = onDeviceSettings) { Icon(Icons.Default.Settings, contentDescription = "Device settings") }
+            }
+            val (w, h) = when (instance?.type) {
+                DeviceType.AIRTEL_HD -> 250.dp to 760.dp
+                DeviceType.LG_WEBOS -> 220.dp to 820.dp
+                DeviceType.SONY_BRAVIA -> 230.dp to 720.dp
+                null -> 200.dp to 200.dp
+            }
+            `in`.s123dive.oneremote.ui.remote.layouts.FitScale(w, h, Modifier.weight(1f)) {
+                when (instance?.type) {
+                    DeviceType.AIRTEL_HD -> `in`.s123dive.oneremote.ui.remote.layouts.AirtelRemote(actions, tv = vm.roomTvActions(actions))
+                    DeviceType.LG_WEBOS -> `in`.s123dive.oneremote.ui.remote.layouts.LgMagicRemote(
+                        actions,
+                        onMic = { context.startActivity(android.content.Intent(context, `in`.s123dive.oneremote.voice.VoiceActivity::class.java)) },
+                        onApp = { name -> launchAppByName(vm, name) },
+                    )
+                    DeviceType.SONY_BRAVIA -> `in`.s123dive.oneremote.ui.remote.layouts.SonyBraviaRemote(actions, onApp = { name -> launchAppByName(vm, name) })
+                    null -> {}
                 }
-            }
-            last?.let { Text(it.text, style = MaterialTheme.typography.bodySmall, color = if (it.ok) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.error) }
-            vm.unavailableReason()?.let { Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium) }
-            val context = androidx.compose.ui.platform.LocalContext.current
-            when (instance?.type) {
-                DeviceType.AIRTEL_HD -> `in`.s123dive.oneremote.ui.remote.layouts.AirtelRemote(actions, tv = vm.roomTvActions(actions))
-                DeviceType.LG_WEBOS -> `in`.s123dive.oneremote.ui.remote.layouts.LgMagicRemote(
-                    actions,
-                    onMic = { context.startActivity(android.content.Intent(context, `in`.s123dive.oneremote.voice.VoiceActivity::class.java)) },
-                    onApp = { name -> launchAppByName(vm, name) },
-                )
-                DeviceType.SONY_BRAVIA -> `in`.s123dive.oneremote.ui.remote.layouts.SonyBraviaRemote(actions, onApp = { name -> launchAppByName(vm, name) })
-                null -> {}
-            }
-            instance?.let { extra(vm, actions) }
-            if (instance?.type == DeviceType.AIRTEL_HD) {
-                Text("Favourite channel chips on the Scene send the digits followed by OK.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
         SnackbarHost(snackbar, Modifier.align(Alignment.BottomCenter))
+    }
+    if (sheet) {
+        androidx.compose.material3.ModalBottomSheet(onDismissRequest = { sheet = false }) {
+            Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                instance?.let { extra(vm, actions) }
+            }
+        }
     }
 }

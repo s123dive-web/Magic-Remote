@@ -85,8 +85,11 @@ class CodesetScanner(
     }
 
     companion object {
-        /** Candidates for a list of code sets: each one's Power code. */
+        /** Candidates for a list of code sets: each one's Power code, or Mute / Menu / OK / 1 when it has none. */
         fun fromCodesets(codesets: List<Codeset>): List<NecSweep.Candidate> =
-            codesets.mapNotNull { cs -> cs.code(Command.Power)?.let { NecSweep.Candidate(cs.name, it, cs.id) } }
+            codesets.mapNotNull { cs ->
+                val key = listOf(Command.Power, Command.Mute, Command.Menu, Command.Ok, Command.Digit(1)).firstOrNull { cs.code(it) != null } ?: return@mapNotNull null
+                NecSweep.Candidate("${cs.name}${if (key != Command.Power) " (${key.key})" else ""}", cs.code(key)!!, cs.id)
+            }
     }
 }

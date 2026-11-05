@@ -70,9 +70,9 @@ fun RemoteBody(corner: Dp, width: Dp, modifier: Modifier = Modifier, content: @C
                 .clip(RoundedCornerShape(corner))
                 .background(Brush.verticalGradient(listOf(Color(0xFF1A1D21), RemoteColors.body, Color(0xFF0B0D0F))))
                 .border(1.dp, RemoteColors.bodyEdge, RoundedCornerShape(corner))
-                .padding(horizontal = 14.dp, vertical = 18.dp),
+                .padding(horizontal = 14.dp, vertical = 14.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp),
         ) { content() }
     }
 }

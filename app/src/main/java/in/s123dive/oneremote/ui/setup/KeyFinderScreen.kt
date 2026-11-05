@@ -38,7 +38,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import `in`.s123dive.oneremote.core.Command
 import `in`.s123dive.oneremote.devices.DeviceConfig
 import `in`.s123dive.oneremote.ir.CodesetScanner
-import `in`.s123dive.oneremote.ir.IrCode
 import `in`.s123dive.oneremote.ir.NecSweep
 import `in`.s123dive.oneremote.ui.KeyValue
 import `in`.s123dive.oneremote.ui.SectionCard
@@ -59,12 +58,11 @@ fun KeyFinderScreen(instanceId: String, onBack: () -> Unit, onDone: () -> Unit) 
     val scope = rememberCoroutineScope()
     val instance = state.device(instanceId)
     val config = instance?.let { DeviceConfig(it.config) }
-    val address = config?.necAddress
-    val extended = config?.necExtended ?: false
     val known = config?.customCodes ?: emptyMap()
+    val power = known[Command.Power.key]
     var key by remember { mutableStateOf<Command>(Command.VolUp) }
-    val assigned = remember(known) { known.values.filterIsInstance<IrCode.Nec>().map { it.command }.toSet() }
-    val candidates = remember(address, extended, assigned) { if (address == null) emptyList() else NecSweep.commandSweep(address, extended, assigned) }
+    val assigned = remember(known) { known.values.mapNotNull { NecSweep.commandOf(it) }.toSet() }
+    val candidates = remember(power, assigned) { if (power == null) emptyList() else NecSweep.commandSweepFor(power, assigned) }
     val scanner = remember(candidates, key) { CodesetScanner(candidates, send = { c -> graph.sendIrDiagnostic("keyfinder ${key.key} ${c.label}", c.code) }, intervalMs = 320) }
     val scan by scanner.state.collectAsStateWithLifecycle()
     var verifying by remember { mutableStateOf<List<NecSweep.Candidate>?>(null) }
@@ -78,9 +76,9 @@ fun KeyFinderScreen(instanceId: String, onBack: () -> Unit, onDone: () -> Unit) 
         },
     ) { padding ->
         Column(Modifier.fillMaxSize().padding(padding).verticalScroll(rememberScrollState()).padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            if (instance == null || address == null) { Text("This device has no NEC address yet. Run the Power sweep first."); return@Column }
+            if (instance == null || power == null) { Text("This device has no Power code yet. Run the Power sweep first."); return@Column }
             KeyValue("Device", instance.name)
-            KeyValue("NEC address", (if (extended) "0x%04X (extended)" else "0x%02X").format(address))
+            KeyValue("Protocol / address", power.describe().substringBefore('/'))
             KeyValue("Keys found", "${known.size}: " + known.keys.joinToString(", "))
             SectionCard("1. Pick the key to find") {
                 LazyRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
