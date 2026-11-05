@@ -82,7 +82,8 @@ class CodesetsTest {
     fun scanEntryAddressEncoding() {
         val humax = AirtelCodesets.scanList.first { it.id == "irdb-humax-0-17" }
         assertEquals(IrCode.Nec(0x1100, 0, extended = true), humax.code)
-        val plain = AirtelCodesets.scanList.first { it.id == "irdb-generic-4--1" }
-        assertEquals(IrCode.Nec(4, 8, extended = false), plain.code)
+        val plain = AirtelCodesets.scanList.first { it.id == "irdb-generic-8--1" }
+        assertEquals(IrCode.Nec(8, 10, extended = false), plain.code)
+        assertTrue(AirtelCodesets.scanList.none { it.code.address == 4 && it.code.command == 8 }) // never the LG TV's own code
     }
 }

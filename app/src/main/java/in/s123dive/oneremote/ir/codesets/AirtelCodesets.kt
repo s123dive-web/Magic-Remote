@@ -57,9 +57,10 @@ object AirtelCodesets {
         return ScanEntry(id, "$brand STB (NEC $device,$sub)", IrCode.Nec(address, fn, ext), "probonopd/irdb $brand ($device,$sub)")
     }
 
+    /** NEC 0x04/0x08 is the LG TV's own Power code and is deliberately NOT here: a TV reacting is not the box reacting. */
     val scanList: List<ScanEntry> = listOf(
         entry("Humax", 0, 17, 0), entry("Humax", 0, 23, 0), entry("Humax", 0, 73, 0),
-        entry("Dish", 1, -1, 16), entry("Generic", 4, -1, 8), entry("Generic", 8, -1, 10),
+        entry("Dish", 1, -1, 16), entry("Generic", 8, -1, 10),
         entry("Pioneer", 12, 251, 21), entry("Generic", 32, 255, 15), entry("Zinwell", 64, 64, 10),
         entry("Generic", 64, 223, 18), entry("Kaon", 130, 110, 1), entry("Generic", 132, 99, 20),
         entry("Generic", 170, -1, 28), entry("Generic", 247, -1, 8), entry("Motorola", 2, 255, 24),

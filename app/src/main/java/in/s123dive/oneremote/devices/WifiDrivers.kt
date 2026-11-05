@@ -39,7 +39,7 @@ class WifiDrivers(
                 }
             }
         })
-        return LgTransport(client, mac = { instance.mac ?: config.mac ?: client.info.macAddress }, localIpv4 = localIpv4)
+        return LgTransport(client, mac = { instance.mac ?: config.mac ?: client.info.macAddress }, localIpv4 = localIpv4, background = scope)
     }
 
     private fun sony(instance: DeviceInstance, config: DeviceConfig): Transport? {

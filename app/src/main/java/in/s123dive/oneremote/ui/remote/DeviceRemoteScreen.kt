@@ -113,7 +113,7 @@ fun DeviceRemotePage(
             vm.unavailableReason()?.let { Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium) }
             val context = androidx.compose.ui.platform.LocalContext.current
             when (instance?.type) {
-                DeviceType.AIRTEL_HD -> `in`.s123dive.oneremote.ui.remote.layouts.AirtelRemote(actions)
+                DeviceType.AIRTEL_HD -> `in`.s123dive.oneremote.ui.remote.layouts.AirtelRemote(actions, tv = vm.roomTvActions(actions))
                 DeviceType.LG_WEBOS -> `in`.s123dive.oneremote.ui.remote.layouts.LgMagicRemote(
                     actions,
                     onMic = { context.startActivity(android.content.Intent(context, `in`.s123dive.oneremote.voice.VoiceActivity::class.java)) },

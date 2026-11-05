@@ -56,14 +56,14 @@ fun VerifyDialog(graph: AppGraph, label: String, recent: List<NecSweep.Candidate
     }
     AlertDialog(
         onDismissRequest = onNone,
-        title = { Text("Did it react just now?") },
+        title = { Text("Did the BOX react just now?") },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 if (current == null) Text("None of the recent codes was confirmed.")
                 else {
                     Text("Re-sending ${index + 1} of ${recent.size}: ${current.label}")
                     LinearProgressIndicator(progress = { (index + 1f) / recent.size }, modifier = Modifier.fillMaxWidth())
-                    Text(if (sent) "Sent. Did the box react?" else "Sending…", style = MaterialTheme.typography.bodySmall)
+                    Text(if (sent) "Sent. Did the box itself react? If only the TV reacted, answer No." else "Sending…", style = MaterialTheme.typography.bodySmall)
                 }
             }
         },

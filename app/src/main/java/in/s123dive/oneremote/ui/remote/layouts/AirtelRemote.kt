@@ -24,15 +24,15 @@ import `in`.s123dive.oneremote.ui.remote.PadActions
  * The Airtel Digital TV DTH remote, key for key:
  * tv · mute · stb / myRec · menu · a/v · iTV · fav · movies / red-arrow pad with ok /
  * VOL rocker · back · exit · CH rocker / colour keys / transport rows / digits with help · info.
- * Keys this app cannot drive on the box (tv, a/v, iTV, fav, movies, rec, help) are shown greyed
- * with their physical labels so the layout matches; tapping one explains why.
+ * The "tv" key does what it does on the real remote: it powers the room's TV. Keys the box has no
+ * code for are greyed with their physical labels so the layout matches; tapping one explains why.
  */
 @Composable
-fun AirtelRemote(a: PadActions) {
+fun AirtelRemote(a: PadActions, tv: PadActions) {
     val red = Color(0xFFE53935)
     RemoteShell("airtel") {
         KeyRow(18.dp) {
-            PKey(a, Command.PowerOn, "tv", size = 46.dp)
+            PKey(tv, Command.Power, "tv", size = 46.dp)
             PKey(a, Command.Mute, "mute", icon = Icons.AutoMirrored.Filled.VolumeMute, color = red, size = 46.dp)
             PKey(a, Command.Power, "stb", icon = Icons.Default.PowerSettingsNew, color = red, size = 46.dp)
         }

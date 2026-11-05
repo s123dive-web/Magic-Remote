@@ -2,8 +2,7 @@ package `in`.s123dive.oneremote.lg
 
 import `in`.s123dive.oneremote.net.Http
 import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.sync.Mutex
@@ -100,48 +99,58 @@ class LgClient(
         return Result.Err(reason)
     }
 
-    /** Opens both ports at once; returns which one won (true = wss), or null with the errors filled in. */
+    /**
+     * Opens both ports at once and returns the moment one is open (true = wss), cancelling the
+     * other attempt. LG closes an unregistered socket after a few seconds, so the handshake must
+     * start right away rather than wait for the losing port to time out.
+     */
     private suspend fun openFirst(errors: MutableList<String>): Boolean? = kotlinx.coroutines.coroutineScope {
         val winner = CompletableDeferred<Boolean?>()
-        val attempts = listOf(false, true).map { useSecure ->
-            async {
-                val err = open(useSecure, onOpen = { ws -> if (!winner.complete(useSecure)) ws.close(1000, "other port won") })
+        val jobs = listOf(false, true).map { useSecure ->
+            launch {
+                val err = open(useSecure, onOpen = { winner.complete(useSecure) })
                 if (err != null) synchronized(errors) { errors += err }
-                err
             }
         }
-        // Wait for a winner or for both attempts to fail.
-        val all = async { attempts.awaitAll(); if (!winner.isCompleted) winner.complete(null) }
+        launch { jobs.forEach { it.join() }; winner.complete(null) }
         val result = winner.await()
-        if (result == null) all.await() else all.cancel()
+        if (result != null) jobs.forEach { it.cancel() } // loser is cancelled; open() cancels its socket
         result
     }
 
-    /** Returns null on success (socket installed), else the reason. */
+    /** Returns null on success (socket installed), else the reason. Cancellation closes the attempt. */
     private suspend fun open(useSecure: Boolean, onOpen: (WebSocket) -> Unit): String? {
         val url = if (useSecure) "wss://$host:3001" else "ws://$host:3000"
         val client = if (useSecure) Http.trustingHost(host, forWebSocket = true) else Http.webSocket
         val opened = CompletableDeferred<String?>()
         val ws = client.newWebSocket(Request.Builder().url(url).build(), object : WebSocketListener() {
             override fun onOpen(webSocket: WebSocket, response: Response) {
-                if (socket == null) { socket = webSocket; opened.complete(null); onOpen(webSocket) } else { webSocket.close(1000, "duplicate"); opened.complete("$url: another port already won") }
+                synchronized(this@LgClient) {
+                    if (socket == null) { socket = webSocket; lastDrop = null; opened.complete(null); onOpen(webSocket) }
+                    else { webSocket.cancel(); opened.complete("$url: another port already won") }
+                }
             }
             override fun onMessage(webSocket: WebSocket, text: String) { if (webSocket === socket) handle(text) }
             override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {
                 val http = response?.let { " (HTTP ${it.code} ${it.message})" } ?: ""
                 opened.complete("$url: ${t::class.simpleName}: ${t.message}$http")
-                if (webSocket === socket) dropped("socket failure: ${t.message}")
+                if (webSocket === socket) dropped("${t::class.simpleName}: ${t.message}")
             }
-            override fun onClosed(webSocket: WebSocket, code: Int, reason: String) { if (webSocket === socket) dropped("closed $code $reason") }
+            override fun onClosed(webSocket: WebSocket, code: Int, reason: String) { if (webSocket === socket) dropped("TV closed the socket ($code ${reason.ifBlank { "no reason" }})") }
             override fun onClosing(webSocket: WebSocket, code: Int, reason: String) { webSocket.close(code, reason) }
         })
-        val err = withTimeoutOrNull(Http.WS_CONNECT_SEC * 1000 + 2000) { opened.await() } ?: "$url: no TLS/HTTP reply in ${Http.WS_CONNECT_SEC + 2} s"
-        if (err != null) ws.cancel()
-        return err
+        try {
+            val err = withTimeoutOrNull(Http.WS_CONNECT_SEC * 1000 + 2000) { opened.await() } ?: "$url: no TLS/HTTP reply in ${Http.WS_CONNECT_SEC + 2} s"
+            if (err != null) ws.cancel()
+            return err
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            if (ws !== socket) ws.cancel()
+            throw e
+        }
     }
 
     private suspend fun handshake(): Result<LgInfo> {
-        val ws = socket ?: return Result.Err("no socket")
+        val ws = socket ?: return Result.Err("socket dropped right after opening: ${lastDrop ?: "unknown"}")
         registered = CompletableDeferred()
         var gathered = LgInfo(secure = secure)
         // hello (optional on older firmware)
@@ -208,7 +217,10 @@ class LgClient(
         msg.id?.let { pending[it]?.complete(msg) }
     }
 
+    @Volatile private var lastDrop: String? = null
+
     private fun dropped(reason: String) {
+        lastDrop = reason
         socket = null
         pointerSocket = null
         pending.values.forEach { it.complete(SsapMessages.Incoming(null, "error", null, reason)) }
@@ -262,6 +274,15 @@ class LgClient(
         runCatching { pointerSocket?.close(1000, "bye") }; pointerSocket = null
         closeSocketQuietly()
         _state.value = State.Disconnected
+    }
+
+    @Volatile private var connecting = false
+
+    /** Starts a connect in the background (one at a time); key presses use IR meanwhile. */
+    fun connectInBackground(scope: kotlinx.coroutines.CoroutineScope) {
+        if (connecting || isConnected || isDown) return
+        connecting = true
+        scope.launch { try { connect() } finally { connecting = false } }
     }
 
     /** Lets the pair screen retry immediately instead of waiting out the breaker. */

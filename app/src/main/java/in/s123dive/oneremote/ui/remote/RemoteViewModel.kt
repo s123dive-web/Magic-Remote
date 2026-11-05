@@ -76,6 +76,19 @@ class RemoteViewModel(private val graph: AppGraph, private val instanceId: Strin
         }
     }
 
+    /** Actions that drive the room's TV (for the Airtel remote's "tv" key). */
+    fun roomTvActions(base: `in`.s123dive.oneremote.ui.remote.PadActions): `in`.s123dive.oneremote.ui.remote.PadActions {
+        val inst = instance.value
+        val tvId = inst?.let { graph.repository.current().room(it.roomId)?.tvId }
+        val tvCaps = tvId?.let { id -> graph.repository.current().device(id)?.let { graph.registry.get(it)?.capabilities } } ?: emptySet()
+        return `in`.s123dive.oneremote.ui.remote.PadActions(
+            supports = { it.capability in tvCaps },
+            send = { cmd -> inst?.let { i -> viewModelScope.launch { _last.value = LastSend(cmd, graph.router.send(RouteRequest(i.roomId, Role.TV, cmd, Source.SCREEN))) } } },
+            onUnsupported = { base.onUnsupported(it) },
+            haptics = base.haptics,
+        )
+    }
+
     fun send(cmd: Command, source: Source = Source.SCREEN) {
         val inst = instance.value ?: return
         viewModelScope.launch {

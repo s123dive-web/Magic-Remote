@@ -21,6 +21,7 @@ class LgTransport(
     val client: LgClient,
     private val mac: () -> String?,
     private val localIpv4: () -> String?,
+    private val background: kotlinx.coroutines.CoroutineScope? = null,
 ) : Transport, AutoCloseable {
     override val kind = TransportKind.WIFI
 
@@ -69,8 +70,9 @@ class LgTransport(
 
     override suspend fun send(cmd: Command): SendResult {
         val payload = describe(cmd)
-        if (!client.isConnected && client.isDown && cmd != Command.PowerOn) {
-            return SendResult.Failed(payload, "TV not reachable over Wi-Fi (retry in ${client.secondsUntilRetry()} s)")
+        if (!client.isConnected && cmd != Command.PowerOn) {
+            if (client.isDown) return SendResult.Failed(payload, "TV not reachable over Wi-Fi (retry in ${client.secondsUntilRetry()} s)")
+            if (background != null) { client.connectInBackground(background); return SendResult.Failed(payload, "Wi-Fi connecting in the background; this press goes over IR") }
         }
         return when (cmd) {
             Command.PowerOn -> wake(payload)

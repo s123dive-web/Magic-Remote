@@ -103,7 +103,7 @@ fun CodesetScanScreen(type: DeviceType, roomId: String?, onBack: () -> Unit, onD
             }
             SectionCard(if (mode == Mode.KNOWN) "Known code sets (${candidates.size})" else "Deep sweep (${candidates.size} codes, about ${candidates.size * mode.intervalMs / 60000} min)") {
                 Text(
-                    if (mode == Mode.KNOWN) "Point the phone at the box, 1–2 m away, with a clear line of sight. Each known code set's Power code is sent every ${mode.intervalMs / 1000.0} s. Tap \"It reacted!\" the moment the box turns on or off; the app then replays the last codes to confirm which one it was."
+                    if (mode == Mode.KNOWN) "Point the phone at the box, 1–2 m away, with a clear line of sight. Each known code set's Power code is sent every ${mode.intervalMs / 1000.0} s. Watch the BOX (its light or the picture it sends), not the TV: the TV reacting to a code means that code is the TV's, not the box's. Tap \"It reacted!\" the moment the box turns on or off; the app then replays the last codes to confirm which one it was."
                     else "Tries every common NEC address and Power command. Keep the phone pointed at the box and tap \"It reacted!\" when it turns on or off. Pause any time; the position is kept.",
                     style = MaterialTheme.typography.bodySmall,
                 )

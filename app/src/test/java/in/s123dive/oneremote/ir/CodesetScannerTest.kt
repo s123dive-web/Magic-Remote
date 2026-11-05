@@ -46,8 +46,9 @@ class CodesetScannerTest {
     @Test
     fun sweepsCoverAddressesAndCommands() {
         val power = NecSweep.powerSweep()
-        assertEquals(NecSweep.POWER_COMMANDS.size * 256, power.size)
+        assertEquals(NecSweep.POWER_COMMANDS.size * 256 - 1, power.size) // minus the LG TV power code
         assertEquals(IrCode.Nec(0x00, 0x0C), power[0].code)
+        assertTrue(power.none { (it.code as IrCode.Nec).address == 0x04 && (it.code as IrCode.Nec).command == 0x08 })
         assertTrue(power.all { it.codesetId == null })
         val cmds = NecSweep.commandSweep(0xA1DE, extended = true, skip = setOf(0xDE))
         assertEquals(255, cmds.size)
