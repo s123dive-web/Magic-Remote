@@ -80,6 +80,7 @@ class SetupViewModel(private val graph: AppGraph) : ViewModel() {
         fun assign(room: Room, instance: DeviceInstance): Room = when (instance.type) {
             DeviceType.AIRTEL_HD -> if (room.stbId == null) room.copy(stbId = instance.id) else room.copy(extras = room.extras + instance.id)
             DeviceType.LG_WEBOS, DeviceType.SONY_BRAVIA -> if (room.tvId == null) room.copy(tvId = instance.id) else room.copy(extras = room.extras + instance.id)
+            DeviceType.ATOMBERG_FAN -> room.copy(extras = room.extras + instance.id)
         }
 
         fun roleOf(state: AppState, instanceId: String): String {

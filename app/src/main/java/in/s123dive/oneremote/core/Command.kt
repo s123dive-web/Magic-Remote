@@ -97,6 +97,18 @@ sealed interface Command {
         override val key get() = "TEXT:$s"
     }
 
+    // ---- fan ----
+    /** Discrete fan speed 1..5 (Atomberg remotes have one key per speed). */
+    @Serializable @SerialName("FAN_SPEED") data class FanSpeed(val n: Int) : Command {
+        init { require(n in 1..5) { "fan speed must be 1..5, was $n" } }
+        override val key get() = "FAN_SPEED:$n"
+    }
+    @Serializable @SerialName("BOOST") data object Boost : Command { override val key get() = "BOOST" }
+    /** Cycles the fan's timer (1h → 2h → 4h → 6h → off on Atomberg). */
+    @Serializable @SerialName("TIMER") data object Timer : Command { override val key get() = "TIMER" }
+    /** Fan LED / light toggle. */
+    @Serializable @SerialName("LIGHT") data object Light : Command { override val key get() = "LIGHT" }
+
     /** Expert mode: transport-specific raw payload (e.g. NEC address+command bytes). */
     @Serializable @SerialName("RAW") class Raw(val bytes: ByteArray) : Command {
         override val key get() = "RAW:" + bytes.joinToString("") { "%02X".format(it) }
@@ -110,7 +122,7 @@ sealed interface Command {
         val SIMPLE: List<Command> = listOf(
             Power, PowerOn, PowerOff, VolUp, VolDown, Mute, ChUp, ChDown,
             Ok, Back, Home, Menu, Guide, Info, Exit, ChannelList, Fav, Prev, Subtitle, Audio, Sleep, Help, Up, Down, Left, Right, Input,
-            Play, Pause, Stop, Rew, Fwd, Record, Red, Green, Yellow, Blue, PointerClick,
+            Play, Pause, Stop, Rew, Fwd, Record, Red, Green, Yellow, Blue, PointerClick, Boost, Timer, Light,
         )
         private val simpleByKey = SIMPLE.associateBy { it.key }
 
@@ -125,6 +137,7 @@ sealed interface Command {
             return runCatching {
                 when (name) {
                     "DIGIT" -> Digit(arg.toInt())
+                    "FAN_SPEED" -> FanSpeed(arg.toInt())
                     "CHANNEL" -> Channel(arg.toInt())
                     "INPUT_SELECT" -> InputSelect(arg)
                     "LAUNCH_APP" -> LaunchApp(arg)

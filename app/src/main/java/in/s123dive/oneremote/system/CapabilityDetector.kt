@@ -15,6 +15,7 @@ data class PhoneCapabilities(
     val ipv4: String?,
 ) {
     val airtelMessage: String? get() = if (ir.hasIr) null else "This box is IR-only; this phone has no IR blaster"
+    val fanMessage: String? get() = if (ir.hasIr) null else "The fan is IR-only; this phone has no IR blaster"
     val sonyIrMessage: String? get() = when {
         !ir.hasIr -> "Sony IR fallback unavailable: no IR blaster"
         !ir.supports40k -> "Sony IR fallback unavailable: this blaster does not support 40 kHz"

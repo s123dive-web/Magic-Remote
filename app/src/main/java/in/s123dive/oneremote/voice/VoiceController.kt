@@ -155,7 +155,7 @@ class VoiceController(private val context: Context, private val graph: AppGraph)
                 val id = when (tv.type) {
                     DeviceType.LG_WEBOS -> "HDMI_${i.hdmiPort}"
                     DeviceType.SONY_BRAVIA -> "extInput:hdmi?port=${i.hdmiPort}"
-                    DeviceType.AIRTEL_HD -> return "Not supported on this box"
+                    DeviceType.AIRTEL_HD, DeviceType.ATOMBERG_FAN -> return "Not supported on this device"
                 }
                 send(room, Command.InputSelect(id), VoiceIntent.Target.TV)
             }

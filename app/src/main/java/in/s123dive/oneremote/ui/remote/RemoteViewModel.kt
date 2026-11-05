@@ -54,6 +54,7 @@ class RemoteViewModel(private val graph: AppGraph, private val instanceId: Strin
             `in`.s123dive.oneremote.core.DeviceType.AIRTEL_HD -> caps.airtelMessage ?: "No code set configured"
             `in`.s123dive.oneremote.core.DeviceType.LG_WEBOS -> caps.lgIrMessage ?: "No transport configured"
             `in`.s123dive.oneremote.core.DeviceType.SONY_BRAVIA -> caps.sonyIrMessage ?: "No transport configured"
+            `in`.s123dive.oneremote.core.DeviceType.ATOMBERG_FAN -> caps.fanMessage ?: "No code set configured"
         }
     }
 

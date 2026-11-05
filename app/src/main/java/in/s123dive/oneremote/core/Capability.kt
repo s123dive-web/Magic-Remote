@@ -36,6 +36,8 @@ enum class Capability {
     VOLUME_ABSOLUTE,
     /** Raw(bytes) expert payloads. */
     RAW,
+    /** FanSpeed(n), Boost, Timer, Light. */
+    FAN,
 }
 
 /** The capability a transport must declare to carry this command. */
@@ -55,4 +57,5 @@ val Command.capability: Capability
         is Command.PointerMove, Command.PointerClick, is Command.Scroll -> Capability.POINTER
         is Command.Text -> Capability.TEXT_INPUT
         is Command.Raw -> Capability.RAW
+        is Command.FanSpeed, Command.Boost, Command.Timer, Command.Light -> Capability.FAN
     }

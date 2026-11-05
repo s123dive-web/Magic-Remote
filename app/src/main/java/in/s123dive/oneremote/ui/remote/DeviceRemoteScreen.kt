@@ -115,6 +115,7 @@ fun DeviceRemotePage(
                 DeviceType.AIRTEL_HD -> 250.dp to 760.dp
                 DeviceType.LG_WEBOS -> 220.dp to 820.dp
                 DeviceType.SONY_BRAVIA -> 230.dp to 720.dp
+                DeviceType.ATOMBERG_FAN -> 230.dp to 420.dp
                 null -> 200.dp to 200.dp
             }
             `in`.s123dive.oneremote.ui.remote.layouts.FitScale(w, h, Modifier.weight(1f)) {
@@ -126,6 +127,7 @@ fun DeviceRemotePage(
                         onApp = { name -> launchAppByName(vm, name) },
                     )
                     DeviceType.SONY_BRAVIA -> `in`.s123dive.oneremote.ui.remote.layouts.SonyBraviaRemote(actions, onApp = { name -> launchAppByName(vm, name) })
+                    DeviceType.ATOMBERG_FAN -> Text("Fan remote arrives in Phase 2.", color = MaterialTheme.colorScheme.onSurfaceVariant)
                     null -> {}
                 }
             }

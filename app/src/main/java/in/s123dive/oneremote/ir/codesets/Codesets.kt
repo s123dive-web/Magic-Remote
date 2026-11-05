@@ -4,7 +4,7 @@ import `in`.s123dive.oneremote.core.DeviceType
 
 /** Registry of built-in codesets. */
 object Codesets {
-    val all: List<Codeset> = listOf(LgNecCodeset.codeset, SonySircCodeset.addr1, SonySircCodeset.addr26) + AirtelCodesets.candidates
+    val all: List<Codeset> = listOf(LgNecCodeset.codeset, SonySircCodeset.addr1, SonySircCodeset.addr26, AtombergCodeset.codeset) + AirtelCodesets.candidates
     private val byId = all.associateBy { it.id }
 
     fun byId(id: String): Codeset? = byId[id]
@@ -15,11 +15,13 @@ object Codesets {
         DeviceType.AIRTEL_HD -> AirtelCodesets.candidates
         DeviceType.LG_WEBOS -> listOf(LgNecCodeset.codeset)
         DeviceType.SONY_BRAVIA -> listOf(SonySircCodeset.addr1, SonySircCodeset.addr26)
+        DeviceType.ATOMBERG_FAN -> listOf(AtombergCodeset.codeset)
     }
 
     fun defaultFor(type: DeviceType): Codeset = when (type) {
         DeviceType.AIRTEL_HD -> AirtelCodesets.stb2
         DeviceType.LG_WEBOS -> LgNecCodeset.codeset
         DeviceType.SONY_BRAVIA -> SonySircCodeset.addr1
+        DeviceType.ATOMBERG_FAN -> AtombergCodeset.codeset
     }
 }

@@ -58,7 +58,7 @@ fun deviceExtras(vm: `in`.s123dive.oneremote.ui.remote.RemoteViewModel, actions:
     when (vm.instance.value?.type) {
         DeviceType.LG_WEBOS -> LgExtras(vm, actions)
         DeviceType.SONY_BRAVIA -> SonyExtras(vm, actions)
-        else -> {}
+        DeviceType.AIRTEL_HD, DeviceType.ATOMBERG_FAN, null -> {}
     }
 }
 

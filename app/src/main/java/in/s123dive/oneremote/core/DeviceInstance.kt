@@ -9,6 +9,7 @@ enum class DeviceType(val displayName: String) {
     AIRTEL_HD("Airtel Digital TV HD box"),
     LG_WEBOS("LG webOS TV"),
     SONY_BRAVIA("Sony Bravia"),
+    ATOMBERG_FAN("Atomberg BLDC fan"),
 }
 
 /** How a command physically leaves the phone. */
