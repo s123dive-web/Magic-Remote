@@ -94,7 +94,9 @@ fun SceneScreen(
     var overrideFor by remember { mutableStateOf<Pair<Role, Command>?>(null) }
     val room = ui.room
     val pagerDevices = remember(ui.state, room) { room?.let { Rooms.pagerDevices(ui.state, it) } ?: emptyList() }
-    val pager = rememberPagerState(pageCount = { 1 + pagerDevices.size })
+    // Pages: the physical remotes first (TV, Box, extras), the combined dual-pane view last.
+    val pager = rememberPagerState(pageCount = { pagerDevices.size + 1 })
+    val combinedPage = pagerDevices.size
 
     LaunchedEffect(last) { last?.let { if (!it.ok) snackbar.showSnackbar(it.text) } }
 
@@ -138,8 +140,15 @@ fun SceneScreen(
             }
             return@Scaffold
         }
-        HorizontalPager(state = pager, modifier = Modifier.fillMaxSize().padding(padding)) { page ->
-            if (page == 0) {
+        Column(Modifier.fillMaxSize().padding(padding)) {
+        androidx.compose.material3.PrimaryTabRow(selectedTabIndex = pager.currentPage.coerceIn(0, pagerDevices.size)) {
+            pagerDevices.forEachIndexed { i, d ->
+                androidx.compose.material3.Tab(selected = pager.currentPage == i, onClick = { scope.launch { pager.animateScrollToPage(i) } }, text = { Text(d.name, maxLines = 1) })
+            }
+            androidx.compose.material3.Tab(selected = pager.currentPage == combinedPage, onClick = { scope.launch { pager.animateScrollToPage(combinedPage) } }, text = { Text("Both") })
+        }
+        HorizontalPager(state = pager, modifier = Modifier.fillMaxSize()) { page ->
+            if (page == combinedPage) {
                 val tvZone: @Composable () -> Unit = {
                     ui.tv?.let { tv ->
                         val a = actions(Role.TV)
@@ -195,13 +204,14 @@ fun SceneScreen(
                             if (ui.tv != null && ui.stb != null) HorizontalDivider()
                             stbZone()
                         }
-                        Text("Swipe left for the full remotes · long-press a key to change which device it goes to", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text("Long-press a key to change which device it goes to", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
             } else {
-                val device = pagerDevices[page - 1]
+                val device = pagerDevices[page]
                 DeviceRemotePage(device.id, onDeviceSettings = { onDeviceSettings(device.id) }, extra = extras)
             }
+        }
         }
     }
 
