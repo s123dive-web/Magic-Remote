@@ -46,6 +46,7 @@ class LgTransport(
         Command.ChUp -> "CHANNELUP"; Command.ChDown -> "CHANNELDOWN"
         Command.Red -> "RED"; Command.Green -> "GREEN"; Command.Yellow -> "YELLOW"; Command.Blue -> "BLUE"
         Command.Play -> "PLAY"; Command.Pause -> "PAUSE"; Command.Stop -> "STOP"; Command.Rew -> "REWIND"; Command.Fwd -> "FASTFORWARD"
+        Command.Record -> "RECORD"; Command.Subtitle -> "CC"; Command.Prev -> "DASH"
         is Command.Digit -> cmd.n.toString()
         else -> null
     }

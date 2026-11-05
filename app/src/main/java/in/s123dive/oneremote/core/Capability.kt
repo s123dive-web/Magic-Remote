@@ -46,8 +46,9 @@ val Command.capability: Capability
         Command.ChUp, Command.ChDown, is Command.Channel -> Capability.CHANNEL
         is Command.Digit -> Capability.DIGITS
         Command.Ok, Command.Up, Command.Down, Command.Left, Command.Right -> Capability.NAVIGATION
-        Command.Back, Command.Home, Command.Menu, Command.Guide, Command.Info, Command.Exit -> Capability.MENU
-        Command.Play, Command.Pause, Command.Stop, Command.Rew, Command.Fwd -> Capability.PLAYBACK
+        Command.Back, Command.Home, Command.Menu, Command.Guide, Command.Info, Command.Exit,
+        Command.ChannelList, Command.Fav, Command.Prev, Command.Subtitle, Command.Audio, Command.Sleep, Command.Help -> Capability.MENU
+        Command.Play, Command.Pause, Command.Stop, Command.Rew, Command.Fwd, Command.Record -> Capability.PLAYBACK
         Command.Red, Command.Green, Command.Yellow, Command.Blue -> Capability.COLOUR_KEYS
         Command.Input, is Command.InputSelect -> Capability.INPUT
         is Command.LaunchApp -> Capability.APP_LAUNCH

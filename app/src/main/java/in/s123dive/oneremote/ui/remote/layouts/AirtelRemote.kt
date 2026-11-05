@@ -48,13 +48,13 @@ fun AirtelRemote(a: PadActions, tv: PadActions) {
         }
         // myRec · menu · a/v · iTV
         KeyRow(6.dp) {
-            Key(a, Command.Play, "myRec", width = 46.dp, height = 24.dp, fontSize = 9.sp)
+            Key(a, Command.Record, "myRec", width = 46.dp, height = 24.dp, fontSize = 9.sp)
             Key(a, Command.Menu, "menu", width = 46.dp, height = 24.dp, fontSize = 9.sp)
             Key(a, Command.Input, "a/v", width = 46.dp, height = 24.dp, fontSize = 9.sp)
             Key(a, Command.Guide, "iTV", width = 46.dp, height = 24.dp, fontSize = 9.sp)
         }
         KeyRow(6.dp) {
-            Key(a, Command.Info, "fav", width = 46.dp, height = 24.dp, fontSize = 9.sp)
+            Key(a, Command.Fav, "fav", width = 46.dp, height = 24.dp, fontSize = 9.sp)
             Key(a, Command.Home, "movies", width = 46.dp, height = 24.dp, fontSize = 9.sp)
         }
         // D-pad: dark rounded square, red chevrons, round ok
@@ -91,7 +91,7 @@ fun AirtelRemote(a: PadActions, tv: PadActions) {
             Key(a, Command.Fwd, ">>", width = 54.dp, height = 26.dp, icon = Icons.Default.FastForward)
         }
         KeyRow(8.dp) {
-            Key(a, Command.Red, "● rec", width = 54.dp, height = 26.dp, textColor = c.red, fontSize = 9.sp)
+            Key(a, Command.Record, "● rec", width = 54.dp, height = 26.dp, textColor = c.red, fontSize = 9.sp)
             Key(a, Command.Pause, "||", width = 54.dp, height = 26.dp, icon = Icons.Default.Pause)
             Key(a, Command.Stop, "■", width = 54.dp, height = 26.dp, icon = Icons.Default.Stop)
         }
@@ -101,7 +101,7 @@ fun AirtelRemote(a: PadActions, tv: PadActions) {
             KeyRow(8.dp) { row.forEach { d -> Key(a, Command.Digit(d), "$d", width = 54.dp, height = 30.dp, sub = letters[d], fontSize = 13.sp, bold = true) } }
         }
         KeyRow(8.dp) {
-            Key(a, Command.Info, "help", width = 54.dp, height = 30.dp, fontSize = 9.sp)
+            Key(a, Command.Help, "help", width = 54.dp, height = 30.dp, fontSize = 9.sp)
             Key(a, Command.Digit(0), "0", width = 54.dp, height = 30.dp, sub = letters[0], fontSize = 13.sp, bold = true)
             Key(a, Command.Info, "info", width = 54.dp, height = 30.dp, fontSize = 9.sp)
         }

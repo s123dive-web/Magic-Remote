@@ -54,9 +54,9 @@ fun LgMagicRemote(a: PadActions, onMic: () -> Unit, onApp: (String) -> Unit) {
             KeyRow(8.dp) { row.forEach { d -> Key(a, Command.Digit(d), "$d", width = 44.dp, height = 24.dp, shape = RoundedCornerShape(12.dp), fontSize = 12.sp, bold = true) } }
         }
         KeyRow(8.dp) {
-            Key(a, Command.Guide, "—/LIST", width = 44.dp, height = 24.dp, shape = RoundedCornerShape(12.dp), fontSize = 8.sp)
+            Key(a, Command.ChannelList, "—/LIST", width = 44.dp, height = 24.dp, shape = RoundedCornerShape(12.dp), fontSize = 8.sp)
             Key(a, Command.Digit(0), "0", width = 44.dp, height = 24.dp, shape = RoundedCornerShape(12.dp), fontSize = 12.sp, bold = true, sub = "QUICK ACCESS")
-            Key(a, Command.Info, "AD/SAP", width = 44.dp, height = 24.dp, shape = RoundedCornerShape(12.dp), fontSize = 8.sp)
+            Key(a, Command.Audio, "AD/SAP", width = 44.dp, height = 24.dp, shape = RoundedCornerShape(12.dp), fontSize = 8.sp)
         }
         // volume column · mute/mic · channel column
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.Top) {
@@ -70,7 +70,7 @@ fun LgMagicRemote(a: PadActions, onMic: () -> Unit, onApp: (String) -> Unit) {
                 ActionKey("Mic", onClick = onMic, width = 40.dp, height = 40.dp, shape = CircleShape, icon = Icons.Default.Mic, textColor = Color.White, fill = c.key)
             }
             Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Key(a, Command.Input, "tv", width = 36.dp, height = 20.dp, shape = CircleShape, fill = Color.Transparent, icon = Icons.Default.Tv)
+                Key(a, Command.Exit, "exit", width = 36.dp, height = 20.dp, shape = CircleShape, fill = Color.Transparent, icon = Icons.Default.Tv)
                 Key(a, Command.ChUp, "+", width = 36.dp, height = 30.dp, shape = CircleShape, fontSize = 18.sp, repeat = true, bold = true)
                 Key(a, Command.ChDown, "−", width = 36.dp, height = 30.dp, shape = CircleShape, fontSize = 18.sp, repeat = true, bold = true)
             }
@@ -98,9 +98,9 @@ fun LgMagicRemote(a: PadActions, onMic: () -> Unit, onApp: (String) -> Unit) {
             Key(a, Command.Guide, "≡ GUIDE", width = 50.dp, height = 26.dp, shape = RoundedCornerShape(13.dp), fontSize = 8.sp)
         }
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-            ActionKey("NETFLIX", onClick = { onApp("netflix") }, width = 56.dp, height = 22.dp, fill = c.red, textColor = Color.White, fontSize = 8.sp)
-            Key(a, Command.Exit, "⟲", width = 30.dp, height = 22.dp, shape = CircleShape, fontSize = 12.sp)
-            ActionKey("prime video", onClick = { onApp("prime") }, width = 56.dp, height = 22.dp, fill = Color(0xFF1F6FB2), textColor = Color.White, fontSize = 8.sp)
+            Key(a, Command.LaunchApp("netflix"), "NETFLIX", width = 56.dp, height = 22.dp, shape = RoundedCornerShape(11.dp), fill = c.red, textColor = Color.White, fontSize = 8.sp, bold = true)
+            Key(a, Command.Prev, "⟲", width = 30.dp, height = 22.dp, shape = CircleShape, fontSize = 12.sp)
+            Key(a, Command.LaunchApp("amazon"), "prime video", width = 56.dp, height = 22.dp, shape = RoundedCornerShape(11.dp), fill = Color(0xFF1F6FB2), textColor = Color.White, fontSize = 8.sp, bold = true)
         }
         KeyRow(10.dp) {
             Key(a, Command.Red, "", width = 26.dp, height = 12.dp, shape = RoundedCornerShape(6.dp), fill = c.red)
@@ -109,7 +109,7 @@ fun LgMagicRemote(a: PadActions, onMic: () -> Unit, onApp: (String) -> Unit) {
             Key(a, Command.Blue, "", width = 26.dp, height = 12.dp, shape = RoundedCornerShape(6.dp), fill = c.blue)
         }
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-            ActionKey("MOVIES", onClick = { onApp("movies") }, width = 50.dp, height = 22.dp, fontSize = 8.sp)
+            ActionKey("MOVIES", onClick = { onApp("lg channels") }, width = 50.dp, height = 22.dp, fontSize = 8.sp)
             Key(a, Command.Play, "▶", width = 30.dp, height = 22.dp, shape = CircleShape, icon = Icons.Default.PlayArrow)
             Key(a, Command.Pause, "‖", width = 30.dp, height = 22.dp, shape = CircleShape, icon = Icons.Default.Pause)
         }

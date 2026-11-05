@@ -59,7 +59,8 @@ fun KeyFinderScreen(instanceId: String, onBack: () -> Unit, onDone: () -> Unit) 
     val instance = state.device(instanceId)
     val config = instance?.let { DeviceConfig(it.config) }
     val known = config?.customCodes ?: emptyMap()
-    val power = known[Command.Power.key]
+    val builtIn = config?.codesetId?.let { `in`.s123dive.oneremote.ir.codesets.Codesets.byId(it) }
+    val power = known[Command.Power.key] ?: builtIn?.code(Command.Power)
     var key by remember { mutableStateOf<Command>(Command.VolUp) }
     val assigned = remember(known) { known.values.mapNotNull { NecSweep.commandOf(it) }.toSet() }
     val candidates = remember(power, assigned) { if (power == null) emptyList() else NecSweep.commandSweepFor(power, assigned) }
@@ -80,10 +81,11 @@ fun KeyFinderScreen(instanceId: String, onBack: () -> Unit, onDone: () -> Unit) 
             KeyValue("Device", instance.name)
             KeyValue("Protocol / address", power.describe().substringBefore('/'))
             KeyValue("Keys found", "${known.size}: " + known.keys.joinToString(", "))
+            builtIn?.let { KeyValue("Built-in code set", it.name) ; Text("Found keys override the built-in ones; use this for any key that does nothing on your model.", style = MaterialTheme.typography.bodySmall) }
             SectionCard("1. Pick the key to find") {
                 LazyRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     items(EXPERT_COMMANDS.filter { it != Command.Power }, key = { it.key }) { c ->
-                        FilterChip(selected = key == c, enabled = !scan.running, onClick = { key = c }, label = { Text(c.key + if (known.containsKey(c.key)) " ✓" else "") })
+                        FilterChip(selected = key == c, enabled = !scan.running, onClick = { key = c }, label = { Text(c.key + if (known.containsKey(c.key)) " ✓" else if (builtIn?.code(c) != null) " ·" else "") })
                     }
                 }
             }

@@ -48,7 +48,8 @@ val EXPERT_COMMANDS: List<Command> = listOf(
     Command.Power, Command.Mute, Command.VolUp, Command.VolDown, Command.ChUp, Command.ChDown,
 ) + (0..9).map { Command.Digit(it) } + listOf(
     Command.Ok, Command.Up, Command.Down, Command.Left, Command.Right, Command.Back, Command.Exit, Command.Menu,
-    Command.Guide, Command.Info, Command.Home, Command.Input, Command.Play, Command.Pause, Command.Stop, Command.Rew, Command.Fwd,
+    Command.Guide, Command.Info, Command.Home, Command.Input, Command.ChannelList, Command.Fav, Command.Prev, Command.Record,
+    Command.Play, Command.Pause, Command.Stop, Command.Rew, Command.Fwd, Command.Subtitle, Command.Audio, Command.Sleep, Command.Help,
     Command.Red, Command.Green, Command.Yellow, Command.Blue, Command.PowerOn, Command.PowerOff,
 )
 

@@ -120,6 +120,9 @@ object SonyApi {
         "BACK" to listOf("Return", "Back"), "HOME" to listOf("Home"), "MENU" to listOf("Options", "ActionMenu", "Menu"),
         "GUIDE" to listOf("Guide", "EPG", "GGuide"), "INFO" to listOf("Display", "Info"), "EXIT" to listOf("Exit"),
         "INPUT" to listOf("Input"),
+        "LIST" to listOf("ChannelList", "List"), "FAV" to listOf("Favorites", "Fav"), "PREV" to listOf("Jump", "PrevCh", "Prev"),
+        "SUBTITLE" to listOf("SubTitle", "ClosedCaption"), "AUDIO" to listOf("Audio", "SAP"), "SLEEP" to listOf("Sleep"), "HELP" to listOf("Help"),
+        "RECORD" to listOf("Rec", "Record"),
         "PLAY" to listOf("Play"), "PAUSE" to listOf("Pause"), "STOP" to listOf("Stop"), "REW" to listOf("Rewind"), "FWD" to listOf("Forward", "FastForward"),
         "RED" to listOf("Red"), "GREEN" to listOf("Green"), "YELLOW" to listOf("Yellow"), "BLUE" to listOf("Blue"),
     ) + (0..9).associate { "DIGIT:$it" to listOf("Num$it") }

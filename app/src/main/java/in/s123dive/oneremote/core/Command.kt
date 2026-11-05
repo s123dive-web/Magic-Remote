@@ -44,6 +44,16 @@ sealed interface Command {
     @Serializable @SerialName("GUIDE") data object Guide : Command { override val key get() = "GUIDE" }
     @Serializable @SerialName("INFO") data object Info : Command { override val key get() = "INFO" }
     @Serializable @SerialName("EXIT") data object Exit : Command { override val key get() = "EXIT" }
+    /** Channel list. */
+    @Serializable @SerialName("LIST") data object ChannelList : Command { override val key get() = "LIST" }
+    @Serializable @SerialName("FAV") data object Fav : Command { override val key get() = "FAV" }
+    /** Previous / last channel (recall). */
+    @Serializable @SerialName("PREV") data object Prev : Command { override val key get() = "PREV" }
+    @Serializable @SerialName("SUBTITLE") data object Subtitle : Command { override val key get() = "SUBTITLE" }
+    /** Audio track / AD / SAP. */
+    @Serializable @SerialName("AUDIO") data object Audio : Command { override val key get() = "AUDIO" }
+    @Serializable @SerialName("SLEEP") data object Sleep : Command { override val key get() = "SLEEP" }
+    @Serializable @SerialName("HELP") data object Help : Command { override val key get() = "HELP" }
 
     @Serializable @SerialName("UP") data object Up : Command { override val key get() = "UP" }
     @Serializable @SerialName("DOWN") data object Down : Command { override val key get() = "DOWN" }
@@ -62,6 +72,7 @@ sealed interface Command {
     @Serializable @SerialName("STOP") data object Stop : Command { override val key get() = "STOP" }
     @Serializable @SerialName("REW") data object Rew : Command { override val key get() = "REW" }
     @Serializable @SerialName("FWD") data object Fwd : Command { override val key get() = "FWD" }
+    @Serializable @SerialName("RECORD") data object Record : Command { override val key get() = "RECORD" }
 
     @Serializable @SerialName("RED") data object Red : Command { override val key get() = "RED" }
     @Serializable @SerialName("GREEN") data object Green : Command { override val key get() = "GREEN" }
@@ -98,8 +109,8 @@ sealed interface Command {
         /** All parameterless commands, for UIs and parsers. */
         val SIMPLE: List<Command> = listOf(
             Power, PowerOn, PowerOff, VolUp, VolDown, Mute, ChUp, ChDown,
-            Ok, Back, Home, Menu, Guide, Info, Exit, Up, Down, Left, Right, Input,
-            Play, Pause, Stop, Rew, Fwd, Red, Green, Yellow, Blue, PointerClick,
+            Ok, Back, Home, Menu, Guide, Info, Exit, ChannelList, Fav, Prev, Subtitle, Audio, Sleep, Help, Up, Down, Left, Right, Input,
+            Play, Pause, Stop, Rew, Fwd, Record, Red, Green, Yellow, Blue, PointerClick,
         )
         private val simpleByKey = SIMPLE.associateBy { it.key }
 

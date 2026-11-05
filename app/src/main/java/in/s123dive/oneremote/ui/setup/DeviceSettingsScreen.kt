@@ -58,6 +58,7 @@ fun DeviceSettingsScreen(
     val config = instance?.let { DeviceConfig(it.config) }
     var name by remember(instance?.name) { mutableStateOf(instance?.name ?: "") }
     var delay by remember(config?.digitDelayMs) { mutableStateOf((config?.digitDelayMs ?: 250).toString()) }
+    val effectiveCodeset = instance?.let { i -> config?.effectiveCodeset(config.codesetId?.let { Codesets.byId(it) }, i.name, i.type) }
 
     Scaffold(
         topBar = {
@@ -92,7 +93,7 @@ fun DeviceSettingsScreen(
                 OutlinedTextField(value = delay, onValueChange = { delay = it.filter(Char::isDigit) }, label = { Text("Delay between digits (ms)") }, modifier = Modifier.fillMaxWidth())
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     OutlinedButton(onClick = { onExpert(instance.type) }) { Text("Expert mode") }
-                    if (config.customCodes.containsKey(`in`.s123dive.oneremote.core.Command.Power.key)) OutlinedButton(onClick = onKeyFinder) { Text("Find more keys") }
+                    if (effectiveCodeset?.code(`in`.s123dive.oneremote.core.Command.Power) != null) OutlinedButton(onClick = onKeyFinder) { Text("Find / fix keys") }
                 }
             }
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
