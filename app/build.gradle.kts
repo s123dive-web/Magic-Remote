@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -20,7 +22,7 @@ android {
 
     // Release signing: put a keystore.properties next to this file (see README). Without it the
     // release build is signed with the debug key so `assembleRelease` always yields an installable APK.
-    val keystoreProps = java.util.Properties().apply {
+    val keystoreProps = Properties().apply {
         val f = rootProject.file("keystore.properties")
         if (f.exists()) f.inputStream().use { load(it) }
     }
