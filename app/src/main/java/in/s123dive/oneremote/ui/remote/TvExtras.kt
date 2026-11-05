@@ -124,7 +124,6 @@ fun LgExtras(vm: RemoteViewModel, a: PadActions) {
     fun refresh() { scope.launch { transport?.let { t -> inputs = t.inputs().map { it.id to it.title }; apps = t.apps().map { it.id to it.title } } } }
     LaunchedEffect(transport) { refresh() }
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        Touchpad(a)
         TextInputRow(a, supported = a.supports(Command.Text("")), unsupportedText = "Text input needs the Wi-Fi connection.")
         ChipRow("Inputs", inputs, "Connect over Wi-Fi to list inputs (IR Input key cycles them).", onPick = { a.send(Command.InputSelect(it)) }, onRefresh = ::refresh)
         ChipRow("Apps", apps, "Connect over Wi-Fi to list apps.", onPick = { a.send(Command.LaunchApp(it)) }, onRefresh = ::refresh)

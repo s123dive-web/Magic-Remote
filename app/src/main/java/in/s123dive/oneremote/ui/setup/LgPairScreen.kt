@@ -100,6 +100,7 @@ fun LgPairScreen(ip: String, suggestedName: String?, roomId: String?, existingId
                             val inst = vm.state.value.device(id)
                             val transport = inst?.let { graph.registry.get(it) }?.transports?.filterIsInstance<LgTransport>()?.firstOrNull()
                             if (transport == null) { status = "No Wi-Fi driver for this instance"; busy = false; return@launch }
+                            transport.client.resetBreaker()
                             val r = graph.router.diagnostic("LG pair $ip", TransportKind.WIFI, "ssap register") {
                                 when (val c = transport.client.connect()) {
                                     is LgClient.Result.Ok -> SendResult.Ok("registered; webOS ${c.value.webosVersion ?: "?"}")

@@ -18,7 +18,7 @@ data class CarrierTest(val id: String, val label: String, val carrierHz: Int, va
 val CARRIER_TESTS: List<CarrierTest> = listOf(
     CarrierTest(
         id = "lg38", label = "LG Power @ 38 kHz", carrierHz = NecEncoder.CARRIER_HZ,
-        payload = NecEncoder.describe(0x04, 0x08) + " @38kHz", pattern = NecEncoder.frame(0x04, 0x08),
+        payload = NecEncoder.describe(0x04, 0x08) + " @38kHz +repeat", pattern = NecEncoder.press(0x04, 0x08),
     ),
     CarrierTest(
         id = "sony40", label = "Sony Power @ 40 kHz", carrierHz = SircEncoder.CARRIER_HZ,

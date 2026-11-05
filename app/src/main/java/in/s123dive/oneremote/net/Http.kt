@@ -41,8 +41,14 @@ object Http {
             override fun getAcceptedIssuers(): Array<X509Certificate> = arrayOf()
         }
         val ctx = SSLContext.getInstance("TLS").apply { init(null, arrayOf(tm), SecureRandom()) }
+        // LG's embedded TLS stack: TLS 1.2 with every cipher the platform has (OkHttp's modern list is too narrow).
+        val spec = okhttp3.ConnectionSpec.Builder(okhttp3.ConnectionSpec.COMPATIBLE_TLS)
+            .tlsVersions(okhttp3.TlsVersion.TLS_1_2)
+            .allEnabledCipherSuites()
+            .build()
         val b = plain.newBuilder()
             .sslSocketFactory(ctx.socketFactory, tm)
+            .connectionSpecs(listOf(spec, okhttp3.ConnectionSpec.CLEARTEXT))
             .hostnameVerifier { name, _ -> name == host }
         if (forWebSocket) b.connectTimeout(WS_CONNECT_SEC, TimeUnit.SECONDS).readTimeout(0, TimeUnit.MILLISECONDS).callTimeout(0, TimeUnit.MILLISECONDS).pingInterval(15, TimeUnit.SECONDS)
         return b.build()

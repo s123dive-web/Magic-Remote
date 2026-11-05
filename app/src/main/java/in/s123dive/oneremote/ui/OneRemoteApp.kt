@@ -21,6 +21,7 @@ import `in`.s123dive.oneremote.ui.setup.CodesetScanScreen
 import `in`.s123dive.oneremote.ui.setup.DeviceSettingsScreen
 import `in`.s123dive.oneremote.ui.setup.ExpertCodesScreen
 import `in`.s123dive.oneremote.ui.setup.FindDevicesScreen
+import `in`.s123dive.oneremote.ui.setup.KeyFinderScreen
 import `in`.s123dive.oneremote.ui.setup.LgPairScreen
 import `in`.s123dive.oneremote.ui.setup.SonyPairScreen
 import `in`.s123dive.oneremote.ui.setup.WifiDeviceSection
@@ -48,6 +49,7 @@ object Routes {
     fun pair(type: DeviceType, ip: String, roomId: String?, name: String?, instanceId: String?) =
         "pair/${type.name}?ip=$ip&room=${roomId ?: ""}&name=${java.net.URLEncoder.encode(name ?: "", "UTF-8")}&instance=${instanceId ?: ""}"
     fun device(instanceId: String) = "device/$instanceId"
+    fun keyFinder(instanceId: String) = "keyfinder/$instanceId"
 }
 
 /** Type-specific extras under the common pad (LG touchpad/text/apps, Sony apps/inputs). */
@@ -126,8 +128,13 @@ fun OneRemoteApp() {
                         type = type, roomId = room,
                         onBack = { nav.popBackStack() },
                         onDone = { id -> nav.navigate(Routes.remote(id)) { popUpTo(Routes.SCENE) } },
+                        onKeyFinder = { id -> nav.navigate(Routes.keyFinder(id)) { popUpTo(Routes.SCENE) } },
                         onExpert = { nav.navigate(Routes.expert(type, room, null)) },
                     )
+                }
+                composable("keyfinder/{id}") { entry ->
+                    val id = entry.arguments?.getString("id") ?: return@composable
+                    KeyFinderScreen(instanceId = id, onBack = { nav.popBackStack() }, onDone = { nav.navigate(Routes.remote(id)) { popUpTo(Routes.SCENE) } })
                 }
                 composable("expert/{type}?room={room}&instance={instance}") { entry ->
                     val type = DeviceType.valueOf(entry.arguments?.getString("type") ?: DeviceType.AIRTEL_HD.name)
@@ -152,6 +159,7 @@ fun OneRemoteApp() {
                         instanceId = id,
                         onBack = { nav.popBackStack() },
                         onExpert = { type -> nav.navigate(Routes.expert(type, null, id)) },
+                        onKeyFinder = { nav.navigate(Routes.keyFinder(id)) },
                         onRemoved = { nav.navigate(Routes.SCENE) { popUpTo(Routes.SCENE) { inclusive = true } } },
                         wifiSection = { vm, instanceId ->
                             WifiDeviceSection(vm, instanceId, onRepair = { type, ip ->

@@ -66,6 +66,9 @@ fun DeviceRemoteScreen(
     }
 }
 
+/** Hotkeys (Netflix, Prime Video…) launch by matching the TV's app list; the result shows in the last-send line. */
+private fun launchAppByName(vm: RemoteViewModel, name: String) = vm.launchAppByName(name)
+
 /** The remote itself: used by the stand-alone screen and by the Scene pager. */
 @Composable
 fun DeviceRemotePage(
@@ -108,11 +111,17 @@ fun DeviceRemotePage(
             }
             last?.let { Text(it.text, style = MaterialTheme.typography.bodySmall, color = if (it.ok) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.error) }
             vm.unavailableReason()?.let { Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium) }
-            PowerVolumeRow(actions)
-            NavPad(actions)
-            DigitPad(actions)
-            ColourRow(actions)
-            PlaybackRow(actions)
+            val context = androidx.compose.ui.platform.LocalContext.current
+            when (instance?.type) {
+                DeviceType.AIRTEL_HD -> `in`.s123dive.oneremote.ui.remote.layouts.AirtelRemote(actions)
+                DeviceType.LG_WEBOS -> `in`.s123dive.oneremote.ui.remote.layouts.LgMagicRemote(
+                    actions,
+                    onMic = { context.startActivity(android.content.Intent(context, `in`.s123dive.oneremote.voice.VoiceActivity::class.java)) },
+                    onApp = { name -> launchAppByName(vm, name) },
+                )
+                DeviceType.SONY_BRAVIA -> `in`.s123dive.oneremote.ui.remote.layouts.SonyBraviaRemote(actions, onApp = { name -> launchAppByName(vm, name) })
+                null -> {}
+            }
             instance?.let { extra(vm, actions) }
             if (instance?.type == DeviceType.AIRTEL_HD) {
                 Text("Favourite channel chips on the Scene send the digits followed by OK.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)

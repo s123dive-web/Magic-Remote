@@ -69,6 +69,9 @@ class LgTransport(
 
     override suspend fun send(cmd: Command): SendResult {
         val payload = describe(cmd)
+        if (!client.isConnected && client.isDown && cmd != Command.PowerOn) {
+            return SendResult.Failed(payload, "TV not reachable over Wi-Fi (retry in ${client.secondsUntilRetry()} s)")
+        }
         return when (cmd) {
             Command.PowerOn -> wake(payload)
             Command.PowerOff -> rpc("ssap://system/turnOff", null, payload)
@@ -135,7 +138,8 @@ class LgTransport(
 
     override suspend fun isReachable(): Boolean {
         if (client.isConnected) return true
-        return withTimeoutOrNull(Http.TIMEOUT_SEC * 1000 + 1000) { client.connect() is LgClient.Result.Ok } ?: false
+        if (client.isDown) return false
+        return withTimeoutOrNull(Http.WS_CONNECT_SEC * 1000 + 3000) { client.connect() is LgClient.Result.Ok } ?: false
     }
 
     // ---- data for the UI (inputs / apps) ----

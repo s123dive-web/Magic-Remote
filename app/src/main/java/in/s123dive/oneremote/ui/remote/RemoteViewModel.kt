@@ -59,6 +59,23 @@ class RemoteViewModel(private val graph: AppGraph, private val instanceId: Strin
 
     fun supports(cmd: Command): Boolean = cmd.capability in capabilities.value
 
+    /** Finds an app on the TV whose title contains [name] (Wi-Fi only) and launches it. */
+    fun launchAppByName(name: String) {
+        val inst = instance.value ?: return
+        viewModelScope.launch {
+            val device = graph.registry.get(inst)
+            val apps = device?.transports?.filterIsInstance<`in`.s123dive.oneremote.lg.LgTransport>()?.firstOrNull()?.apps()?.map { it.id to it.title }
+                ?: device?.transports?.filterIsInstance<`in`.s123dive.oneremote.sony.SonyTransport>()?.firstOrNull()?.apps()?.map { it.uri to it.title }
+            val match = apps?.firstOrNull { it.second.contains(name, ignoreCase = true) }
+            if (match == null) {
+                _last.value = LastSend(Command.LaunchApp(name), RouteResult.Unsupported(if (apps == null) "App hotkeys need the Wi-Fi connection to ${inst.name}" else "No app matching \"$name\" on ${inst.name}"))
+                return@launch
+            }
+            val result = graph.router.send(RouteRequest(inst.roomId, Role.EXTRA, Command.LaunchApp(match.first), Source.SCREEN, instanceId = inst.id))
+            _last.value = LastSend(Command.LaunchApp(match.second), result)
+        }
+    }
+
     fun send(cmd: Command, source: Source = Source.SCREEN) {
         val inst = instance.value ?: return
         viewModelScope.launch {

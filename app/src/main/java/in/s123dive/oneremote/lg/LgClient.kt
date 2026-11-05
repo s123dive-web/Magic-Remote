@@ -2,6 +2,8 @@ package `in`.s123dive.oneremote.lg
 
 import `in`.s123dive.oneremote.net.Http
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.sync.Mutex
@@ -57,6 +59,7 @@ class LgClient(
     private var pointerSocket: WebSocket? = null
     private var pointerOpen = CompletableDeferred<Boolean>()
     private val pending = ConcurrentHashMap<String, CompletableDeferred<SsapMessages.Incoming>>()
+    private companion object { const val BREAKER_MS = 15_000L }
     private val counter = AtomicInteger(1)
     private var registered = CompletableDeferred<SsapMessages.Incoming>()
     private var secure = preferSecure
@@ -66,48 +69,75 @@ class LgClient(
         data class Err(val reason: String) : Result<Nothing>
     }
 
-    /** Connects and registers if needed. Safe to call repeatedly. */
+    /** After a failed connect the transport stays "down" this long so the Router falls to IR instantly. */
+    var downUntil: Long = 0L; private set
+    val isDown: Boolean get() = System.currentTimeMillis() < downUntil
+    fun secondsUntilRetry(): Long = ((downUntil - System.currentTimeMillis()) / 1000).coerceAtLeast(0)
+
+    /**
+     * Connects and registers if needed. Safe to call repeatedly. ws:3000 and wss:3001 are tried
+     * in parallel (newer firmware only answers on 3001; older only on 3000) and the first socket
+     * that opens is used, so a dead port costs no time.
+     */
     suspend fun connect(): Result<LgInfo> = mutex.withLock {
         if (isConnected) return Result.Ok(info)
         _state.value = State.Connecting
-        val order = if (preferSecure) listOf(true, false) else listOf(false, true)
         val errors = ArrayList<String>()
-        for (useSecure in order) {
-            val opened = open(useSecure)
-            if (opened != null) { errors += opened; continue }
-            secure = useSecure
-            val r = handshake()
-            if (r is Result.Ok) { _state.value = State.Connected(info); return r }
-            val reason = (r as Result.Err).reason
-            errors += "${if (useSecure) "wss:3001" else "ws:3000"}: $reason"
-            closeSocketQuietly()
-            if (!reason.startsWith("connection")) break // protocol-level failure: switching port will not help
+        val opened = openFirst(errors)
+        if (opened == null) {
+            val lastError = errors.joinToString(" | ")
+            downUntil = System.currentTimeMillis() + BREAKER_MS
+            _state.value = State.Failed(lastError)
+            return Result.Err(lastError)
         }
-        val lastError = errors.joinToString(" | ")
-        _state.value = State.Failed(lastError)
-        return Result.Err(lastError)
+        secure = opened
+        val r = handshake()
+        if (r is Result.Ok) { downUntil = 0L; _state.value = State.Connected(info); return r }
+        val reason = "${if (opened) "wss:3001" else "ws:3000"}: ${(r as Result.Err).reason}"
+        closeSocketQuietly()
+        downUntil = System.currentTimeMillis() + BREAKER_MS
+        _state.value = State.Failed(reason)
+        return Result.Err(reason)
     }
 
-    /** Returns null on success, else the reason. */
-    private suspend fun open(useSecure: Boolean): String? {
+    /** Opens both ports at once; returns which one won (true = wss), or null with the errors filled in. */
+    private suspend fun openFirst(errors: MutableList<String>): Boolean? = kotlinx.coroutines.coroutineScope {
+        val winner = CompletableDeferred<Boolean?>()
+        val attempts = listOf(false, true).map { useSecure ->
+            async {
+                val err = open(useSecure, onOpen = { ws -> if (!winner.complete(useSecure)) ws.close(1000, "other port won") })
+                if (err != null) synchronized(errors) { errors += err }
+                err
+            }
+        }
+        // Wait for a winner or for both attempts to fail.
+        val all = async { attempts.awaitAll(); if (!winner.isCompleted) winner.complete(null) }
+        val result = winner.await()
+        if (result == null) all.await() else all.cancel()
+        result
+    }
+
+    /** Returns null on success (socket installed), else the reason. */
+    private suspend fun open(useSecure: Boolean, onOpen: (WebSocket) -> Unit): String? {
         val url = if (useSecure) "wss://$host:3001" else "ws://$host:3000"
         val client = if (useSecure) Http.trustingHost(host, forWebSocket = true) else Http.webSocket
         val opened = CompletableDeferred<String?>()
         val ws = client.newWebSocket(Request.Builder().url(url).build(), object : WebSocketListener() {
-            override fun onOpen(webSocket: WebSocket, response: Response) { opened.complete(null) }
-            override fun onMessage(webSocket: WebSocket, text: String) { handle(text) }
+            override fun onOpen(webSocket: WebSocket, response: Response) {
+                if (socket == null) { socket = webSocket; opened.complete(null); onOpen(webSocket) } else { webSocket.close(1000, "duplicate"); opened.complete("$url: another port already won") }
+            }
+            override fun onMessage(webSocket: WebSocket, text: String) { if (webSocket === socket) handle(text) }
             override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {
                 val http = response?.let { " (HTTP ${it.code} ${it.message})" } ?: ""
-                opened.complete("connection to $url failed: ${t::class.simpleName}: ${t.message}$http")
-                dropped("socket failure: ${t.message}")
+                opened.complete("$url: ${t::class.simpleName}: ${t.message}$http")
+                if (webSocket === socket) dropped("socket failure: ${t.message}")
             }
-            override fun onClosed(webSocket: WebSocket, code: Int, reason: String) { dropped("closed $code $reason") }
+            override fun onClosed(webSocket: WebSocket, code: Int, reason: String) { if (webSocket === socket) dropped("closed $code $reason") }
             override fun onClosing(webSocket: WebSocket, code: Int, reason: String) { webSocket.close(code, reason) }
         })
-        val err = withTimeoutOrNull(Http.WS_CONNECT_SEC * 1000 + 2000) { opened.await() } ?: "connection to $url timed out after ${Http.WS_CONNECT_SEC + 2} s (no TLS/HTTP reply)"
-        if (err != null) { ws.cancel(); return err }
-        socket = ws
-        return null
+        val err = withTimeoutOrNull(Http.WS_CONNECT_SEC * 1000 + 2000) { opened.await() } ?: "$url: no TLS/HTTP reply in ${Http.WS_CONNECT_SEC + 2} s"
+        if (err != null) ws.cancel()
+        return err
     }
 
     private suspend fun handshake(): Result<LgInfo> {
@@ -117,14 +147,14 @@ class LgClient(
         // hello (optional on older firmware)
         val hello = CompletableDeferred<SsapMessages.Incoming>().also { pending["hello"] = it }
         ws.send(SsapMessages.hello())
-        withTimeoutOrNull(2000) { hello.await() }?.payload?.let { p ->
+        withTimeoutOrNull(1000) { hello.await() }?.payload?.let { p ->
             gathered = gathered.copy(webosVersion = p["deviceOSVersion"]?.jsonPrimitive?.content ?: gathered.webosVersion)
         }
         pending.remove("hello")
         // getSystemInfo before registration (newer firmware requires it)
         val sys = CompletableDeferred<SsapMessages.Incoming>().also { pending["get_sys_info"] = it }
         ws.send(SsapMessages.request("get_sys_info", "ssap://system/getSystemInfo"))
-        withTimeoutOrNull(2000) { sys.await() }?.payload?.let { p ->
+        withTimeoutOrNull(1000) { sys.await() }?.payload?.let { p ->
             gathered = gathered.copy(modelName = p["modelName"]?.jsonPrimitive?.content ?: gathered.modelName)
         }
         pending.remove("get_sys_info")
@@ -233,4 +263,7 @@ class LgClient(
         closeSocketQuietly()
         _state.value = State.Disconnected
     }
+
+    /** Lets the pair screen retry immediately instead of waiting out the breaker. */
+    fun resetBreaker() { downUntil = 0L }
 }

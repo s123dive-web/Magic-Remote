@@ -50,6 +50,14 @@ object NecEncoder {
     /** The short "still held" frame. */
     fun repeatFrame(): IntArray = intArrayOf(LEAD_MARK, REPEAT_SPACE, BIT_MARK)
 
+    /**
+     * What one key press on a real remote looks like: the full frame, a gap to the 108 ms
+     * period, then one repeat frame. Receivers that debounce on the repeat code accept this
+     * where a lone frame is ignored.
+     */
+    fun press(address: Int, command: Int, extended: Boolean = false): IntArray =
+        framePadded(address, command, extended) + repeatFrame()
+
     /** [frame] followed by a gap so the whole thing occupies exactly [FRAME_PERIOD_US]. */
     fun framePadded(address: Int, command: Int, extended: Boolean = false): IntArray =
         pad(frame(address, command, extended), FRAME_PERIOD_US)

@@ -25,14 +25,16 @@ class DeviceFactory(
     private val ir: IrTransmitter,
     private val wifi: WifiTransportFactory = WifiTransportFactory { _, _ -> null },
 ) : DeviceRegistry {
-    private val cache = HashMap<String, Pair<DeviceInstance, Device>>()
+    private val cache = HashMap<String, Pair<String, Device>>()
+
+    private fun signature(instance: DeviceInstance) = "${instance.type}|${instance.transports}|${DeviceConfig(instance.config).driverSignature()}"
 
     @Synchronized
     override fun get(instance: DeviceInstance): Device? {
-        cache[instance.id]?.let { (cached, device) -> if (cached == instance) return device }
+        cache[instance.id]?.let { (sig, device) -> if (sig == signature(instance)) return device }
         cache.remove(instance.id)?.second?.transports?.forEach { (it as? AutoCloseable)?.close() }
         val device = build(instance) ?: return null
-        cache[instance.id] = instance to device
+        cache[instance.id] = signature(instance) to device
         return device
     }
 

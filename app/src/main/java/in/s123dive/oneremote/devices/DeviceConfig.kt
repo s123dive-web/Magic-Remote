@@ -40,6 +40,16 @@ class DeviceConfig(val json: JsonObject) {
     fun withCustomCodes(codes: Map<String, IrCode>): DeviceConfig =
         with(CUSTOM_CODES, AppStateJson.json.encodeToJsonElement(MapSerializer(String.serializer(), IrCode.serializer()), codes))
     val digitDelayMs: Int? get() = int(DIGIT_DELAY_MS)
+    /** NEC address found by the Power sweep; the key finder sweeps commands on it. */
+    val necAddress: Int? get() = int(NEC_ADDRESS)
+    val necExtended: Boolean get() = bool(NEC_EXTENDED) ?: false
+
+    /**
+     * The part of the config that changes which driver object is needed. Facts the driver itself
+     * writes back (client-key, model, firmware, MAC, IRCC map) are excluded so a pairing does not
+     * tear down the connection it just made.
+     */
+    fun driverSignature(): String = listOf(IP, PSK, CODESET_ID, CUSTOM_CODES, DIGIT_DELAY_MS, SECURE).joinToString("|") { "$it=${json[it]}" }
 
     /** The effective codeset: built-in (if any) overlaid with custom codes. */
     fun effectiveCodeset(builtIn: Codeset?, fallbackName: String, type: `in`.s123dive.oneremote.core.DeviceType): Codeset? {
@@ -88,6 +98,8 @@ class DeviceConfig(val json: JsonObject) {
         const val TEXT_INPUT = "textInput"
         const val IRCC_CODES = "irccCodes"
         const val STB_INPUT = "stbInput"
+        const val NEC_ADDRESS = "necAddress"
+        const val NEC_EXTENDED = "necExtended"
         /** Keys whose values are secrets (backup export warns about these). */
         val SECRET_KEYS = setOf(CLIENT_KEY, PSK)
 

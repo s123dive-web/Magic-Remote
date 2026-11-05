@@ -60,8 +60,19 @@ class SonyTransport(
         else -> irccName(cmd.key)?.let { "IRCC $it" } ?: "IRCC ${SonyApi.IRCC_NAMES[cmd.key]?.firstOrNull() ?: cmd.key} (not in TV's list)"
     }
 
+    @Volatile private var downUntil = 0L
+    private val isDown get() = System.currentTimeMillis() < downUntil
+
+    private fun <T> breaker(outcome: SonyClient.Outcome<T>): SonyClient.Outcome<T> {
+        downUntil = if (outcome is SonyClient.Outcome.Unreachable) System.currentTimeMillis() + 15_000 else 0L
+        return outcome
+    }
+
     override suspend fun send(cmd: Command): SendResult {
         val payload = describe(cmd)
+        if (isDown && cmd != Command.PowerOn && cmd != Command.Power) {
+            return SendResult.Failed(payload, "TV not reachable over Wi-Fi (retry in ${(downUntil - System.currentTimeMillis()) / 1000} s)")
+        }
         return when (cmd) {
             Command.PowerOn -> powerOn(payload)
             Command.PowerOff -> map(client.setPowerStatus(false), payload)
@@ -123,13 +134,13 @@ class SonyTransport(
         }
     }
 
-    private fun <T> map(outcome: SonyClient.Outcome<T>, payload: String): SendResult = when (outcome) {
+    private fun <T> map(outcome0: SonyClient.Outcome<T>, payload: String): SendResult = when (val outcome = breaker(outcome0)) {
         is SonyClient.Outcome.Ok -> SendResult.Ok(payload)
         is SonyClient.Outcome.Unsupported -> SendResult.Unsupported(outcome.reason)
         else -> SendResult.Failed(payload, outcome.reason)
     }
 
-    override suspend fun isReachable(): Boolean = client.powerStatus() is SonyClient.Outcome.Ok
+    override suspend fun isReachable(): Boolean = !isDown && breaker(client.powerStatus()) is SonyClient.Outcome.Ok
 
     suspend fun inputs(): List<SonyApi.Item> = (client.inputs() as? SonyClient.Outcome.Ok)?.value ?: emptyList()
     suspend fun apps(): List<SonyApi.Item> = (client.apps() as? SonyClient.Outcome.Ok)?.value ?: emptyList()

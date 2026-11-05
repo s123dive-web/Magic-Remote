@@ -57,6 +57,14 @@ class NecEncoderTest {
     }
 
     @Test
+    fun pressIsPaddedFrameThenRepeat() {
+        val p = NecEncoder.press(0x04, 0x08)
+        assertEquals(68 + 3, p.size)
+        assertEquals(108_000, p.copyOfRange(0, 68).sum())
+        assertArrayEquals(intArrayOf(9000, 2250, 562), p.copyOfRange(68, 71))
+    }
+
+    @Test
     fun describe() {
         assertEquals("NEC 0x04/0x08", NecEncoder.describe(0x04, 0x08))
         assertEquals("NECx 0x6B86/0x01", NecEncoder.describe(0x6B86, 0x01, extended = true))

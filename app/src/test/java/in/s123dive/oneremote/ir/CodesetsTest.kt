@@ -32,7 +32,7 @@ class CodesetsTest {
     fun lgPowerMatchesReference() {
         val code = LgNecCodeset.codeset.code(Command.Power) as IrCode.Nec
         assertEquals(IrCode.Nec(0x04, 0x08), code)
-        assertArrayEquals(NecEncoder.frame(0x04, 0x08), code.pattern())
+        assertArrayEquals(NecEncoder.press(0x04, 0x08), code.pattern())
         assertEquals("NEC 0x04/0x08", code.describe())
         assertEquals(38_000, LgNecCodeset.codeset.carrierHz)
     }
@@ -53,8 +53,9 @@ class CodesetsTest {
         assertEquals(IrCode.Nec(0xA1DE, 0xDE, extended = true), power)
         assertEquals("NECx 0xA1DE/0xDE", power.describe())
         // Extended frame: 16-bit address LSB first -> low byte 0xDE then 0xA1, then cmd 0xDE and ~cmd 0x21.
-        val frame = power.pattern()
+        val frame = NecEncoder.frame(0xA1DE, 0xDE, extended = true)
         assertEquals(67, frame.size)
+        assertEquals(71, power.pattern().size) // padded frame + repeat frame
         val bits = (0 until 32).map { frame[3 + it * 2] == 1687 }
         fun byte(off: Int) = (0 until 8).sumOf { if (bits[off + it]) 1 shl it else 0 }
         assertEquals(0xDE, byte(0)); assertEquals(0xA1, byte(8)); assertEquals(0xDE, byte(16)); assertEquals(0x21, byte(24))

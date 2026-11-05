@@ -45,6 +45,7 @@ fun DeviceSettingsScreen(
     instanceId: String,
     onBack: () -> Unit,
     onExpert: (DeviceType) -> Unit,
+    onKeyFinder: () -> Unit = {},
     onRemoved: () -> Unit,
     wifiSection: @Composable (SetupViewModel, String) -> Unit = { _, _ -> },
 ) {
@@ -89,7 +90,10 @@ fun DeviceSettingsScreen(
             wifiSection(vm, instanceId)
             SectionCard("IR") {
                 OutlinedTextField(value = delay, onValueChange = { delay = it.filter(Char::isDigit) }, label = { Text("Delay between digits (ms)") }, modifier = Modifier.fillMaxWidth())
-                OutlinedButton(onClick = { onExpert(instance.type) }) { Text("Expert mode: edit IR codes") }
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    OutlinedButton(onClick = { onExpert(instance.type) }) { Text("Expert mode") }
+                    if (config.necAddress != null) OutlinedButton(onClick = onKeyFinder) { Text("Find more keys") }
+                }
             }
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Button(onClick = {

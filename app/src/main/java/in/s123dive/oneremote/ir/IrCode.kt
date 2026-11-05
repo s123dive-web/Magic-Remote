@@ -15,7 +15,7 @@ sealed interface IrCode {
     @Serializable @SerialName("nec")
     data class Nec(val address: Int, val command: Int, val extended: Boolean = false) : IrCode {
         override val carrierHz get() = NecEncoder.CARRIER_HZ
-        override fun pattern() = NecEncoder.frame(address, command, extended)
+        override fun pattern() = NecEncoder.press(address, command, extended)
         override fun describe() = NecEncoder.describe(address, command, extended)
     }
 

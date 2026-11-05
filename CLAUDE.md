@@ -64,6 +64,18 @@ All phases are written and type-checked; none has run on real hardware yet (see 
 - Lint: `abortOnError=false` so a lint finding cannot block a release build; the report is still produced.
 - Dark theme always. Debug diagnostics: role `DEBUG`, room `-`.
 
+## Field findings (2026-11-05, OnePlus Open)
+- LG pairing: both ws:3000 and wss:3001 failed (timeout) on the first build; now ws/wss open in parallel, TLS 1.2 +
+  all ciphers, no permessage-deflate, 8 s open budget, errors per port, Diagnose button logs TCP/HTTP/TLS/WS stages.
+- Wi-Fi transports have a 15 s circuit breaker: after a failed connect, sends fail instantly so the Router falls to IR
+  at once (previously every TV key waited 7–20 s). PowerOn bypasses the breaker (WoL).
+- DeviceFactory rebuilds a driver only when ip/psk/codeset/custom codes change (driverSignature), so the client-key
+  and model/firmware the TV reports no longer tear down the connection that just paired.
+- NEC presses are frame + repeat (108 ms period) like a real remote; the Airtel known code sets did not react on the
+  user's box, so the wizard gained a deep Power sweep (24 common commands × 256 addresses, 350 ms) with a verify step
+  (replays the last 4 codes) and a per-key command finder (256 commands on the found address).
+- Per-device remotes mirror the physical remotes (Airtel DTH remote, LG AN-MR19BA, Sony RMT-TX) from the user's photos.
+
 ## Hardware facts learned (fill from user tests)
 - Phone: OnePlus Open — IR present; 40 kHz support: ?
 - LG model / webOS version: ?
