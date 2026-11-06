@@ -31,8 +31,10 @@ All phases are written and type-checked; none has run on real hardware yet (see 
   setup/ (AddDevice, CodesetScan, ExpertCodes, FindDevices, LgPair, SonyPair, DeviceSettings, WifiDeviceSection),
   rooms/, macros/, settings/ (Settings, Backup), debug/, bubble/ (MiniRemote, BubbleActivity)
 - `AppGraph` hand-wired singletons; `OneRemoteApplication` owns it.
-- Unit tests: `app/src/test` (JUnit4 + coroutines-test), 155 tests, pure code only.
-- `tools/jvmcheck/` type-check harness for machines without the Android SDK (`run.sh`).
+- Unit tests: `app/src/test` (JUnit4 + coroutines-test), 189 tests, pure code only.
+- `tools/jvmcheck/` type-check harness for machines without the Android SDK (`run.sh`). Its `render` task (CI only,
+  workflow "Render remotes") draws every physical remote through `FitScale` at OnePlus Open cover/inner sizes and
+  publishes PNGs on the `renders` pre-release; check them after any layout change.
 
 ## Rules that are enforced in code
 - Every send goes through `Router.send` (or `Router.diagnostic` for carrier test / pairing / scans) and lands in `SendLog`.
@@ -79,6 +81,8 @@ All phases are written and type-checked; none has run on real hardware yet (see 
   user's box, so the wizard gained a deep Power sweep (24 common commands × 256 addresses, 350 ms) with a verify step
   (replays the last 4 codes) and a per-key command finder (256 commands on the found address).
 - Per-device remotes mirror the physical remotes (Airtel DTH remote, LG AN-MR19BA, Sony RMT-TX) from the user's photos.
+  `FitScale` takes only a design width; it measures the remote's natural height and scales to fit (build 15 shifted the
+  remote over the tabs because an oversized child was centred inside a smaller Box; build 17 measures instead).
 - 2026-11-06: the Atomberg fan worked first time (proves the NEC-extended path and Flipper byte order). The Airtel box
   is NOT NEC: irplus `AIRTEL/DS.xml` is Nokia32 (36 kHz, D=38 S=0 X=38; digits = functions 0–9), decoded into
   `AirtelDsCodeset` and placed first. Nokia32/RC5/RC6 sends alternate the toggle bit (`IrToggle`). Deep sweep starts
@@ -109,7 +113,7 @@ All phases are written and type-checked; none has run on real hardware yet (see 
 ## Build / verification notes
 - Written in a cloud container where `dl.google.com` (Android SDK, Google Maven, AGP) is blocked. The Android
   module has NOT been compiled with AGP here. All Kotlin (including Compose UI and Android components) type-checks
-  in `tools/jvmcheck` against JetBrains Compose 1.6.11 + Robolectric android-all + small stubs, and 155 tests pass.
+  in `tools/jvmcheck` against JetBrains Compose 1.6.11 + Robolectric android-all + small stubs, and 189 tests pass.
 - AndroidX-only APIs are stubbed in the harness (DataStore, activity-compose, lifecycle-compose, navigation);
   their real signatures were matched from memory, so the first `assembleDebug` may need small fixes.
 - To build: Android Studio with SDK 36; `./gradlew :app:assembleDebug`, `:app:testDebugUnitTest`, `:app:assembleRelease`.
