@@ -52,7 +52,7 @@ class PhilipsEncodersTest {
         assertEquals(256, NecSweep.rc6PowerPass().size)
         val deep = NecSweep.deepSweep()
         assertTrue(deep.size > 10_000)
-        assertEquals(IrCode.Rc5(0, 12), deep[0].code)
+        assertEquals(IrCode.Rc5(0, 12), deep[256].code) // after the 256 Nokia32 power codes
         assertEquals(63, NecSweep.commandSweepFor(IrCode.Rc5(3, 12), skip = setOf(12)).size)
         assertEquals(255, NecSweep.commandSweepFor(IrCode.Rc6(1, 12), skip = setOf(12)).size)
         assertEquals(255, NecSweep.commandSweepFor(IrCode.Nec(0xA1DE, 0xDE, true), skip = setOf(0xDE)).size)

@@ -52,5 +52,7 @@ class RoomsTest {
         val s = Rooms.setFavourites(state, "r1", listOf(Favourite("News", 7)))
         assertEquals(7, s.room("r1")!!.favourites.single().channel)
         assertEquals(listOf("tv", "stb", "tv2"), Rooms.pagerDevices(state, state.room("r1")!!).map { it.id })
+        val orphan = DeviceInstance("fan", "r1", "Fan", DeviceType.ATOMBERG_FAN, listOf(TransportKind.IR))
+        assertEquals(listOf("tv", "stb", "tv2", "fan"), Rooms.pagerDevices(state.copy(devices = state.devices + orphan), state.room("r1")!!).map { it.id })
     }
 }

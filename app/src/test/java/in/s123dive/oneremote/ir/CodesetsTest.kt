@@ -72,10 +72,11 @@ class CodesetsTest {
     @Test
     fun scanCandidatesForAirtelStartWithAirtelAndCarryProvenance() {
         val c = Codesets.scanCandidates(DeviceType.AIRTEL_HD)
-        assertEquals(AirtelCodesets.ID_STB2, c[0].id)
-        assertTrue(c.size >= 15)
+        assertEquals("airtel-ds-nokia32", c[0].id)
+        assertEquals(AirtelCodesets.ID_STB2, c[1].id)
+        assertTrue(c.size >= 16)
         assertTrue(c.all { it.source.isNotBlank() })
-        assertTrue(c.drop(2).all { it.code(Command.Power) != null })
+        assertTrue(c.drop(3).all { it.code(Command.Power) != null })
     }
 
     @Test

@@ -66,8 +66,8 @@ object AirtelCodesets {
         entry("Generic", 170, -1, 28), entry("Generic", 247, -1, 8), entry("Motorola", 2, 255, 24),
     )
 
-    /** Every candidate the scanner tries, in order: Airtel first, then the harvested list as Power-only codesets. */
-    val candidates: List<Codeset> = listOf(stb2, s8300) + scanList.map {
+    /** Every candidate the scanner tries, in order: the Nokia32 Airtel set first, then STB2 / S8300, then the harvested NEC list. */
+    val candidates: List<Codeset> = listOf(AirtelDsCodeset.codeset, stb2, s8300) + scanList.map {
         Codeset(it.id, it.name, DeviceType.AIRTEL_HD, mapOf(Command.Power.key to it.code), it.source)
     }
 }

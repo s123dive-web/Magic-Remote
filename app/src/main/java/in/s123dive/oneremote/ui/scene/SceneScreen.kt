@@ -141,11 +141,11 @@ fun SceneScreen(
             return@Scaffold
         }
         Column(Modifier.fillMaxSize().padding(padding)) {
-        androidx.compose.material3.PrimaryTabRow(selectedTabIndex = pager.currentPage.coerceIn(0, pagerDevices.size)) {
+        androidx.compose.material3.ScrollableTabRow(selectedTabIndex = pager.currentPage.coerceIn(0, pagerDevices.size), edgePadding = 8.dp) {
             pagerDevices.forEachIndexed { i, d ->
                 androidx.compose.material3.Tab(selected = pager.currentPage == i, onClick = { scope.launch { pager.animateScrollToPage(i) } }, text = { Text(d.name, maxLines = 1) })
             }
-            androidx.compose.material3.Tab(selected = pager.currentPage == combinedPage, onClick = { scope.launch { pager.animateScrollToPage(combinedPage) } }, text = { Text("Both") })
+            androidx.compose.material3.Tab(selected = pager.currentPage == combinedPage, onClick = { scope.launch { pager.animateScrollToPage(combinedPage) } }, text = { Text("All") })
         }
         HorizontalPager(state = pager, modifier = Modifier.fillMaxSize()) { page ->
             if (page == combinedPage) {

@@ -9,6 +9,8 @@ sealed interface IrCode {
     val carrierHz: Int
     /** Pattern for one key press. */
     fun pattern(): IntArray
+    /** Pattern for one key press with an explicit toggle bit (protocols without one ignore it). */
+    fun pattern(toggle: Boolean): IntArray = pattern()
     /** Short summary for the log, e.g. `NEC 0x04/0x08`. */
     fun describe(): String
 
@@ -30,6 +32,7 @@ sealed interface IrCode {
     data class Rc5(val address: Int, val command: Int) : IrCode {
         override val carrierHz get() = Rc5Encoder.CARRIER_HZ
         override fun pattern() = Rc5Encoder.press(address, command)
+        override fun pattern(toggle: Boolean) = NecEncoder.pad(Rc5Encoder.frame(address, command, toggle), Rc5Encoder.FRAME_PERIOD_US) + Rc5Encoder.frame(address, command, toggle)
         override fun describe() = Rc5Encoder.describe(address, command)
     }
 
@@ -37,7 +40,17 @@ sealed interface IrCode {
     data class Rc6(val address: Int, val command: Int) : IrCode {
         override val carrierHz get() = Rc6Encoder.CARRIER_HZ
         override fun pattern() = Rc6Encoder.press(address, command)
+        override fun pattern(toggle: Boolean) = NecEncoder.pad(Rc6Encoder.frame(address, command, toggle), Rc6Encoder.FRAME_PERIOD_US) + Rc6Encoder.frame(address, command, toggle)
         override fun describe() = Rc6Encoder.describe(address, command)
+    }
+
+    /** Nokia32 (Technicolor / Airtel boxes): device, sub-device, X and an 8-bit function. */
+    @Serializable @SerialName("nokia32")
+    data class Nokia32(val device: Int, val sub: Int, val x: Int, val function: Int) : IrCode {
+        override val carrierHz get() = Nokia32Encoder.CARRIER_HZ
+        override fun pattern() = Nokia32Encoder.press(device, sub, x, function, toggle = false)
+        override fun pattern(toggle: Boolean) = Nokia32Encoder.press(device, sub, x, function, toggle)
+        override fun describe() = Nokia32Encoder.describe(device, sub, x, function)
     }
 
     /** A captured raw pattern (microseconds, mark first) at a given carrier; used for non-NEC boxes. */

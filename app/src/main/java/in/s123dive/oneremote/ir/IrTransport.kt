@@ -56,11 +56,11 @@ class IrTransport(
             is Command.Channel -> sendChannel(cmd.n)
             is Command.Raw -> {
                 val code = rawCode(cmd) ?: return SendResult.Unsupported("raw needs 2 bytes (addr,cmd) or 3 (addrHi,addrLo,cmd)")
-                transmitter.send(code.carrierHz, code.pattern(), code.describe())
+                transmitter.send(code.carrierHz, code.pattern(IrToggle.next()), code.describe())
             }
             else -> {
                 val code = resolve(cmd) ?: return SendResult.Unsupported("${codeset.name} has no code for ${cmd.key}")
-                transmitter.send(code.carrierHz, code.pattern(), describe(cmd))
+                transmitter.send(code.carrierHz, code.pattern(IrToggle.next()), describe(cmd))
             }
         }
     }
@@ -71,13 +71,13 @@ class IrTransport(
         var last: SendResult = SendResult.Unsupported("empty")
         for ((i, d) in digits.withIndex()) {
             val code = codeset.code(Command.Digit(d))!!
-            last = transmitter.send(code.carrierHz, code.pattern(), code.describe())
+            last = transmitter.send(code.carrierHz, code.pattern(IrToggle.next()), code.describe())
             if (last !is SendResult.Ok) return last
             if (i < digits.lastIndex || codeset.okAfterChannel) delayFn(codeset.digitDelayMs.toLong())
         }
         if (codeset.okAfterChannel) {
             val ok = codeset.code(Command.Ok) ?: return SendResult.Ok(describe(Command.Channel(n)) + " (no OK code)")
-            last = transmitter.send(ok.carrierHz, ok.pattern(), ok.describe())
+            last = transmitter.send(ok.carrierHz, ok.pattern(IrToggle.next()), ok.describe())
             if (last !is SendResult.Ok) return last
         }
         return SendResult.Ok(describe(Command.Channel(n)))

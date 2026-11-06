@@ -49,7 +49,7 @@ All phases are written and type-checked; none has run on real hardware yet (see 
 - LG power-on: Wake-on-LAN; ws:3000 -> wss:3001 auto-detect; wss trusts the TV's self-signed cert for that host only.
   Register manifest = pywebostv/lgtv2 signature + the spec permission list; hello and getSystemInfo precede register.
 - LG Input key over Wi-Fi is deliberately unsupported (no SSAP picker call) so the Router falls back to IR 0x0B.
-- Airtel codes: STB2 (Flipper-IRDB, NECext 0xA1DE) first, S8300 raw second, then irdb NEC STB Power codes; expert mode.
+- Airtel codes: DS (irplus, Nokia32 38.0.38) first, STB2 (Flipper-IRDB, NECext 0xA1DE), S8300 raw, then irdb NEC STB Power codes; expert mode + key finder.
 - Kotlin package: `in` is a keyword, so sources use ``package `in`.s123dive.oneremote...``; manifest/applicationId plain.
 - Persistence: one `AppState` JSON document in DataStore (lenient read, `type` discriminator, `version`); prefs in Preferences.
 - Corrupt `app_state.json` is replaced with an empty state AND logged (role STORE).
@@ -75,6 +75,10 @@ All phases are written and type-checked; none has run on real hardware yet (see 
   user's box, so the wizard gained a deep Power sweep (24 common commands × 256 addresses, 350 ms) with a verify step
   (replays the last 4 codes) and a per-key command finder (256 commands on the found address).
 - Per-device remotes mirror the physical remotes (Airtel DTH remote, LG AN-MR19BA, Sony RMT-TX) from the user's photos.
+- 2026-11-06: the Atomberg fan worked first time (proves the NEC-extended path and Flipper byte order). The Airtel box
+  is NOT NEC: irplus `AIRTEL/DS.xml` is Nokia32 (36 kHz, D=38 S=0 X=38; digits = functions 0–9), decoded into
+  `AirtelDsCodeset` and placed first. Nokia32/RC5/RC6 sends alternate the toggle bit (`IrToggle`). Deep sweep starts
+  with a Nokia32 power pass. Scene tabs list every device in the room (incl. unreferenced) in a scrollable row.
 
 ## Atomberg BLDC fan (IR) and how to add another IR device
 - Type `DeviceType.ATOMBERG_FAN`; commands `FanSpeed(1..5)`, `Boost`, `Timer`, `Light` (+ `Power`, `Sleep`) under `Capability.FAN`.

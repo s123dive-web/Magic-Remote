@@ -30,7 +30,7 @@ import kotlinx.coroutines.delay
 
 /** One IR send for the wizards: through the Router as a DEBUG diagnostic so it is logged. */
 suspend fun AppGraph.sendIrDiagnostic(label: String, code: IrCode): SendResult {
-    val r = router.diagnostic(label, TransportKind.IR, code.describe()) { ir.send(code.carrierHz, code.pattern(), code.describe()) }
+    val r = router.diagnostic(label, TransportKind.IR, code.describe()) { ir.send(code.carrierHz, code.pattern(`in`.s123dive.oneremote.ir.IrToggle.next()), code.describe()) }
     return when (r) {
         is RouteResult.Sent -> SendResult.Ok(r.payload)
         is RouteResult.Failed -> SendResult.Failed(code.describe(), r.reason)

@@ -19,7 +19,7 @@ object Codesets {
     }
 
     fun defaultFor(type: DeviceType): Codeset = when (type) {
-        DeviceType.AIRTEL_HD -> AirtelCodesets.stb2
+        DeviceType.AIRTEL_HD -> AirtelDsCodeset.codeset
         DeviceType.LG_WEBOS -> LgNecCodeset.codeset
         DeviceType.SONY_BRAVIA -> SonySircCodeset.addr1
         DeviceType.ATOMBERG_FAN -> AtombergCodeset.codeset

@@ -46,7 +46,10 @@ object Rooms {
     fun setFavourites(state: AppState, roomId: String, favourites: List<Favourite>): AppState =
         state.copy(rooms = state.rooms.map { if (it.id == roomId) it.copy(favourites = favourites) else it })
 
-    /** The devices a room's pager shows: TV, STB, then extras, in that order. */
-    fun pagerDevices(state: AppState, room: Room): List<DeviceInstance> =
-        listOfNotNull(room.tvId, room.stbId).plus(room.extras).mapNotNull { state.device(it) }
+    /** The devices a room's pager shows: TV, STB, extras, then any device of the room not referenced by it. */
+    fun pagerDevices(state: AppState, room: Room): List<DeviceInstance> {
+        val referenced = listOfNotNull(room.tvId, room.stbId).plus(room.extras).mapNotNull { state.device(it) }
+        val ids = referenced.map { it.id }.toSet()
+        return referenced + state.devices.filter { it.roomId == room.id && it.id !in ids }
+    }
 }
