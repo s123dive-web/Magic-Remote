@@ -13,7 +13,7 @@ sourceSets {
     test { kotlin { srcDir("$app/test/java") } }
 }
 val cmp = "1.6.11"
-configurations.all {
+configurations.matching { !it.name.startsWith("render") }.all {
     // Google-only base libraries (not on Maven Central); the stubs/ folder covers what the app touches.
     exclude(group = "androidx.annotation"); exclude(group = "androidx.collection"); exclude(group = "androidx.lifecycle")
     exclude(group = "org.jetbrains.androidx.lifecycle"); exclude(group = "org.jetbrains.androidx.navigation")
@@ -38,3 +38,29 @@ tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach 
     compilerOptions.freeCompilerArgs.add("-Xskip-prerelease-check")
 }
 tasks.test { useJUnit(); testLogging { events("failed"); exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL } }
+
+// Renderer (CI only: it needs the real androidx collection/lifecycle jars from Google Maven, which the type-check
+// above stubs out). `gradle render` draws each physical remote through FitScale at OnePlus Open sizes into
+// build/render/*.png with desktop Skia. It compiles only the remote layouts and what they use, never the stubs.
+val render by sourceSets.creating {
+    kotlin.srcDir("render")
+    kotlin.srcDir("$app/main/java")
+    val pkg = "in/s123dive/oneremote"
+    kotlin.include("*.kt", "$pkg/core/Command.kt", "$pkg/core/Capability.kt", "$pkg/ui/remote/RemotePads.kt",
+        "$pkg/ui/remote/RemoteButton.kt", "$pkg/ui/remote/layouts/*.kt")
+}
+dependencies {
+    "renderImplementation"("org.jetbrains.compose.runtime:runtime-desktop:$cmp")
+    "renderImplementation"("org.jetbrains.compose.ui:ui-desktop:$cmp")
+    "renderImplementation"("org.jetbrains.compose.foundation:foundation-desktop:$cmp")
+    "renderImplementation"("org.jetbrains.compose.material3:material3-desktop:$cmp")
+    "renderImplementation"("org.jetbrains.compose.material:material-icons-core-desktop:$cmp")
+    "renderImplementation"("org.jetbrains.compose.material:material-icons-extended-desktop:$cmp")
+    "renderImplementation"("org.jetbrains.kotlinx:kotlinx-serialization-json:1.9.0")
+    "renderImplementation"("org.jetbrains.skiko:skiko-awt-runtime-linux-x64:0.8.4")
+}
+tasks.register<JavaExec>("render") {
+    classpath = render.runtimeClasspath
+    mainClass.set("RenderRemotesKt")
+    args(layout.buildDirectory.dir("render").get().asFile.path)
+}
