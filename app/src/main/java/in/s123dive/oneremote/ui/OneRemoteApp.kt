@@ -51,6 +51,7 @@ object Routes {
         "pair/${type.name}?ip=$ip&room=${roomId ?: ""}&name=${java.net.URLEncoder.encode(name ?: "", "UTF-8")}&instance=${instanceId ?: ""}"
     fun device(instanceId: String) = "device/$instanceId"
     fun keyFinder(instanceId: String) = "keyfinder/$instanceId"
+    fun overrides(instanceId: String) = "overrides/$instanceId"
 }
 
 /** Type-specific extras under the common pad (LG touchpad/text/apps, Sony apps/inputs). */
@@ -146,6 +147,10 @@ fun OneRemoteApp() {
                         onExpert = { nav.navigate(Routes.expert(type, room, null)) },
                     )
                 }
+                composable("overrides/{id}") { entry ->
+                    val id = entry.arguments?.getString("id") ?: return@composable
+                    `in`.s123dive.oneremote.ui.setup.OverrideCodesScreen(instanceId = id, onBack = { nav.popBackStack() })
+                }
                 composable("keyfinder/{id}") { entry ->
                     val id = entry.arguments?.getString("id") ?: return@composable
                     KeyFinderScreen(instanceId = id, onBack = { nav.popBackStack() }, onDone = { nav.navigate(Routes.remote(id)) { popUpTo(Routes.SCENE) } })
@@ -174,6 +179,7 @@ fun OneRemoteApp() {
                         onBack = { nav.popBackStack() },
                         onExpert = { type -> nav.navigate(Routes.expert(type, null, id)) },
                         onKeyFinder = { nav.navigate(Routes.keyFinder(id)) },
+                        onOverrides = { nav.navigate(Routes.overrides(id)) },
                         onRemoved = { nav.navigate(Routes.SCENE) { popUpTo(Routes.SCENE) { inclusive = true } } },
                         wifiSection = { vm, instanceId ->
                             WifiDeviceSection(vm, instanceId, onRepair = { type, ip ->

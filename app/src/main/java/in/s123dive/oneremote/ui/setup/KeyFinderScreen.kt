@@ -84,7 +84,7 @@ fun KeyFinderScreen(instanceId: String, onBack: () -> Unit, onDone: () -> Unit) 
             builtIn?.let { KeyValue("Built-in code set", it.name) ; Text("Found keys override the built-in ones; use this for any key that does nothing on your model.", style = MaterialTheme.typography.bodySmall) }
             SectionCard("1. Pick the key to find") {
                 LazyRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    items(EXPERT_COMMANDS.filter { it != Command.Power }, key = { it.key }) { c ->
+                    items(overrideKeysFor(instance.type).filter { it != Command.Power }, key = { it.key }) { c ->
                         FilterChip(selected = key == c, enabled = !scan.running, onClick = { key = c }, label = { Text(c.key + if (known.containsKey(c.key)) " ✓" else if (builtIn?.code(c) != null) " ·" else "") })
                     }
                 }

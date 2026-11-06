@@ -46,6 +46,7 @@ fun DeviceSettingsScreen(
     onBack: () -> Unit,
     onExpert: (DeviceType) -> Unit,
     onKeyFinder: () -> Unit = {},
+    onOverrides: () -> Unit = {},
     onRemoved: () -> Unit,
     wifiSection: @Composable (SetupViewModel, String) -> Unit = { _, _ -> },
 ) {
@@ -92,6 +93,7 @@ fun DeviceSettingsScreen(
             SectionCard("IR") {
                 OutlinedTextField(value = delay, onValueChange = { delay = it.filter(Char::isDigit) }, label = { Text("Delay between digits (ms)") }, modifier = Modifier.fillMaxWidth())
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    OutlinedButton(onClick = onOverrides) { Text("Learn / override codes") }
                     OutlinedButton(onClick = { onExpert(instance.type) }) { Text("Expert mode") }
                     if (effectiveCodeset?.code(`in`.s123dive.oneremote.core.Command.Power) != null) OutlinedButton(onClick = onKeyFinder) { Text("Find / fix keys") }
                 }
