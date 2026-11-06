@@ -55,6 +55,21 @@ class IntentParserTest {
     @Test fun en_unparsed() { val r = p("what is the weather"); assertTrue(r is VoiceIntent.Unparsed); assertEquals("what is the weather", (r as VoiceIntent.Unparsed).text) }
     @Test fun en_empty() = assertTrue(p("   ") is VoiceIntent.Unparsed)
 
+    // ---- fan ----
+    @Test fun fan_on() = assertEquals(VoiceIntent.Fan(Command.PowerOn), p("fan on"))
+    @Test fun fan_off() = assertEquals(VoiceIntent.Fan(Command.PowerOff), p("turn the fan off"))
+    @Test fun fan_speed3() = assertEquals(VoiceIntent.Fan(Command.FanSpeed(3)), p("fan speed 3"))
+    @Test fun fan_speedWord() = assertEquals(VoiceIntent.Fan(Command.FanSpeed(5)), p("set fan to speed five"))
+    @Test fun fan_boost() = assertEquals(VoiceIntent.Fan(Command.Boost), p("fan boost"))
+    @Test fun fan_light() = assertEquals(VoiceIntent.Fan(Command.Light), p("fan light"))
+    @Test fun fan_timer() = assertEquals(VoiceIntent.Fan(Command.Timer), p("fan timer"))
+    @Test fun fan_toggle() = assertEquals(VoiceIntent.Fan(Command.Power), p("fan"))
+    @Test fun fan_hinglishBand() = assertEquals(VoiceIntent.Fan(Command.PowerOff), p("pankha band karo"))
+    @Test fun fan_hinglishSpeed() = assertEquals(VoiceIntent.Fan(Command.FanSpeed(2)), p("pankha do pe karo"))
+    @Test fun fan_devanagari() = assertEquals(VoiceIntent.Fan(Command.PowerOn), p("पंखा चालू करो"))
+    @Test fun fan_marathiSpeed() = assertEquals(VoiceIntent.Fan(Command.FanSpeed(4)), p("पंखा चार"))
+    @Test fun fan_speedOutOfRangeIsToggle() = assertEquals(VoiceIntent.Fan(Command.Power), p("fan 9"))
+
     // ---- Hindi / Hinglish ----
     @Test fun hi_volumeBadhao() = assertEquals(VoiceIntent.Send(Command.VolUp, Target.TV), p("volume badhao"))
     @Test fun hi_awaazKam() = assertEquals(VoiceIntent.Send(Command.VolDown, Target.TV), p("awaaz kam karo"))

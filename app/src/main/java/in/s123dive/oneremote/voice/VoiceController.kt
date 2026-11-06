@@ -111,6 +111,7 @@ class VoiceController(private val context: Context, private val graph: AppGraph)
         is VoiceIntent.TypeText -> if (i.enter) "Search \"${i.text}\"" else "Type \"${i.text}\""
         is VoiceIntent.Sleep -> "TV off in ${i.minutes} min"
         is VoiceIntent.RunMacro -> "Macro ${i.name}"
+        is VoiceIntent.Fan -> "Fan: ${i.cmd.key}"
         is VoiceIntent.Unparsed -> "Didn't get that: \"${i.text}\""
     }
 
@@ -176,6 +177,16 @@ class VoiceController(private val context: Context, private val graph: AppGraph)
                 if (tv == null) return "This room has no TV"
                 if (tv.type == DeviceType.AIRTEL_HD) return "Not supported on this box"
                 send(room, Command.Text(i.text + if (i.enter) "\n" else ""), VoiceIntent.Target.TV)
+            }
+            is VoiceIntent.Fan -> {
+                val fan = room.extras.mapNotNull { state.device(it) }.firstOrNull { it.type == DeviceType.ATOMBERG_FAN }
+                    ?: state.devices.firstOrNull { it.roomId == room.id && it.type == DeviceType.ATOMBERG_FAN }
+                    ?: return "No fan in ${room.name}"
+                when (val r = graph.router.send(RouteRequest(room.id, Role.EXTRA, i.cmd, Source.VOICE, instanceId = fan.id))) {
+                    is RouteResult.Sent -> "Sent to ${fan.name} via ${r.transport.badge}"
+                    is RouteResult.Failed -> "Failed: ${r.reason}"
+                    is RouteResult.Unsupported -> r.reason
+                }
             }
             is VoiceIntent.Unparsed -> "Didn't get that: \"${i.text}\""
         }

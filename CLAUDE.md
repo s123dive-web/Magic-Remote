@@ -76,11 +76,27 @@ All phases are written and type-checked; none has run on real hardware yet (see 
   (replays the last 4 codes) and a per-key command finder (256 commands on the found address).
 - Per-device remotes mirror the physical remotes (Airtel DTH remote, LG AN-MR19BA, Sony RMT-TX) from the user's photos.
 
+## Atomberg BLDC fan (IR) and how to add another IR device
+- Type `DeviceType.ATOMBERG_FAN`; commands `FanSpeed(1..5)`, `Boost`, `Timer`, `Light` (+ `Power`, `Sleep`) under `Capability.FAN`.
+- Codes live in `ir/codesets/AtombergCodeset.kt` (NEC extended 0xF300; from Flipper-IRDB `Fans/Atomberg/Atomberg_fan.ir`,
+  single public capture, UNVERIFIED on the user's unit). Overrides per key: device settings → "Learn / override codes"
+  (`ui/setup/OverrideCodesScreen.kt`) store `customCodes` in the device config; override wins via `DeviceConfig.effectiveCodeset`.
+- Screen: `ui/remote/layouts/AtombergRemote.kt` (one-hand; highlights are local state, IR is one-way). Added from
+  Add device directly (no scan); appears as a room extra in the Scene tabs; greyed with `fanMessage` without a blaster.
+- Voice: `VoiceIntent.Fan` ("fan on/off", "fan speed 3", "pankha band karo", "पंखा चालू") → room's fan via Router.
+- Intent API: `--es role EXTRA --es cmd FAN_SPEED:3` (EXTRA = first extra of the room; the fan is one if it was added first).
+- Recipe for the next IR-only device: add a `DeviceType`; add commands/capability if the keys are new; write a
+  `Codeset` object (data) and register it in `Codesets.all` / `scanCandidates` / `defaultFor`; add the type to
+  `SetupViewModel.assign`, `AddDeviceScreen`, the `when`s in `DeviceRemoteScreen` (design size + layout) and
+  `RemoteViewModel.unavailableReason`; add a layout under `ui/remote/layouts/`; add `overrideKeysFor` keys. No transport
+  or persistence work is needed: `IrTransport`, `DeviceFactory` and `AppState` are generic.
+
 ## Hardware facts learned (fill from user tests)
 - Phone: OnePlus Open — IR present; 40 kHz support: ?
 - LG model / webOS version: ?
 - Sony KDL-43W6600: IRCC ok? setTextForm ok? WoL ok?
-- Airtel HD codeset id: ? (expect `airtel-stb2` if it is the common HD box)
+- Airtel HD codeset id: ? (the user's box is the HD HEVC "unlimited recording" model; STB2 did not react; RC5/RC6 sweep added)
+- Atomberg fan: codes unverified
 
 ## Build / verification notes
 - Written in a cloud container where `dl.google.com` (Android SDK, Google Maven, AGP) is blocked. The Android

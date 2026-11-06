@@ -13,6 +13,8 @@ sealed interface VoiceIntent {
     data class TypeText(val text: String, val enter: Boolean) : VoiceIntent
     data class Sleep(val minutes: Int) : VoiceIntent
     data class RunMacro(val name: String) : VoiceIntent
+    /** A command for the room's fan (Atomberg): Power/PowerOn/PowerOff, FanSpeed(n), Boost, Timer, Sleep, Light. */
+    data class Fan(val cmd: Command) : VoiceIntent
     data class Unparsed(val text: String) : VoiceIntent
 }
 
@@ -73,7 +75,7 @@ object IntentParser {
     private fun normalise(text: String): List<String> =
         text.lowercase().replace(Regex("[^\\p{L}\\p{M}\\p{N}\\s]"), " ").split(Regex("\\s+")).filter { it.isNotBlank() }
 
-    private val fillers = setOf("please", "the", "a", "an", "to", "kar", "karo", "kardo", "do", "dijiye", "kijiye", "करो", "कर", "करा", "कीजिए", "हो", "jao", "jaa", "haan", "zara", "thoda", "ज़रा", "थोड़ा", "कृपया")
+    private val fillers = setOf("please", "the", "a", "an", "to", "kar", "karo", "kardo", "dijiye", "kijiye", "करो", "कर", "करा", "कीजिए", "हो", "jao", "jaa", "haan", "zara", "thoda", "ज़रा", "थोड़ा", "कृपया")
     private fun strip(tokens: List<String>) = tokens.filter { it !in fillers }
     private fun has(tokens: List<String>, vararg words: String) = words.any { it in tokens }
     private fun phrase(text: String, vararg phrases: String) = phrases.any { text.contains(it) }
@@ -89,6 +91,20 @@ object IntentParser {
         // ---- macros ----
         if (phrase(joined, "watch tv", "tv dekh", "tv dekhna", "टीवी देख", "टीव्ही बघ", "tv lagao", "start tv")) return VoiceIntent.RunMacro("Watch TV")
         if (phrase(joined, "all off", "sab band", "sab kuch band", "sab kuchh band", "everything off", "सब बंद", "सगळं बंद", "सगळे बंद", "turn everything off")) return VoiceIntent.RunMacro("All off")
+
+        // ---- fan (Atomberg) ----
+        if (has(tokens, "fan", "pankha", "pankhaa", "पंखा", "फैन", "फॅन")) {
+            val rest = t.filter { it !in setOf("fan", "pankha", "pankhaa", "पंखा", "फैन", "फॅन", "speed", "स्पीड", "ki", "ko", "की", "को", "set", "on", "at") || it == "on" }
+            number(rest, 0)?.let { (n, _) -> if (n in 1..5) return VoiceIntent.Fan(Command.FanSpeed(n)) }
+            tokens.indexOfFirst { it in setOf("speed", "स्पीड") }.takeIf { it >= 0 }?.let { i -> number(tokens, i + 1)?.let { (n, _) -> if (n in 1..5) return VoiceIntent.Fan(Command.FanSpeed(n)) } }
+            if (has(t, "boost", "बूस्ट", "full", "max", "tez", "तेज")) return VoiceIntent.Fan(Command.Boost)
+            if (has(t, "light", "led", "lamp", "लाइट", "बत्ती", "दिवा")) return VoiceIntent.Fan(Command.Light)
+            if (has(t, "timer", "टाइमर")) return VoiceIntent.Fan(Command.Timer)
+            if (has(t, "sleep", "स्लीप", "नींद")) return VoiceIntent.Fan(Command.Sleep)
+            if (has(t, "off", "band", "bandh", "बंद", "stop", "बन्द")) return VoiceIntent.Fan(Command.PowerOff)
+            if (has(t, "on", "chalu", "chaalu", "start", "chalao", "चालू", "सुरू", "लगाओ")) return VoiceIntent.Fan(Command.PowerOn)
+            return VoiceIntent.Fan(Command.Power)
+        }
 
         // ---- sleep timer ----
         if (has(tokens, "sleep", "timer", "सो", "झोप") || phrase(joined, "minute mein band", "minute me band", "मिनट में बंद", "मिनिटात बंद", "minutes band")) {
