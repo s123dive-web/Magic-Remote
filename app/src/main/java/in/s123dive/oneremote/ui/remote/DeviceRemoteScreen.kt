@@ -108,7 +108,7 @@ fun DeviceRemotePage(
             Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 2.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                 Text(last?.text ?: (vm.unavailableReason() ?: "Ready"), style = MaterialTheme.typography.labelSmall, color = if (last?.ok == false || vm.unavailableReason() != null) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, modifier = Modifier.weight(1f))
                 AssistChip(onClick = {}, label = { Text(last?.transport?.badge ?: instance?.transports?.joinToString("/") { it.badge } ?: "–") })
-                if (instance?.type != DeviceType.AIRTEL_HD) IconButton(onClick = { sheet = true }) { Icon(androidx.compose.material.icons.Icons.Default.MoreVert, contentDescription = "Apps, inputs, typing") }
+                if (instance?.type == DeviceType.LG_WEBOS || instance?.type == DeviceType.SONY_BRAVIA) IconButton(onClick = { sheet = true }) { Icon(androidx.compose.material.icons.Icons.Default.MoreVert, contentDescription = "Apps, inputs, typing") }
                 IconButton(onClick = onDeviceSettings) { Icon(Icons.Default.Settings, contentDescription = "Device settings") }
             }
             val (w, h) = when (instance?.type) {
@@ -127,7 +127,7 @@ fun DeviceRemotePage(
                         onApp = { name -> launchAppByName(vm, name) },
                     )
                     DeviceType.SONY_BRAVIA -> `in`.s123dive.oneremote.ui.remote.layouts.SonyBraviaRemote(actions, onApp = { name -> launchAppByName(vm, name) })
-                    DeviceType.ATOMBERG_FAN -> Text("Fan remote arrives in Phase 2.", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    DeviceType.ATOMBERG_FAN -> `in`.s123dive.oneremote.ui.remote.layouts.AtombergRemote(actions)
                     null -> {}
                 }
             }

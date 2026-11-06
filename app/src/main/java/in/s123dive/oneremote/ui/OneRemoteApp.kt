@@ -5,6 +5,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import kotlinx.coroutines.launch
 import androidx.compose.material.icons.filled.Mic
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -102,8 +103,21 @@ fun OneRemoteApp() {
                 composable(Routes.DEBUG) { DebugConsoleScreen(onBack = { nav.popBackStack() }) }
                 composable("add?room={room}") { entry ->
                     val room = entry.arguments?.getString("room").orNullIfBlank()
+                    val graph = appGraph()
+                    val scope = androidx.compose.runtime.rememberCoroutineScope()
                     AddDeviceScreen(roomId = room, onBack = { nav.popBackStack() }, onPick = { type ->
-                        if (type == DeviceType.AIRTEL_HD) nav.navigate(Routes.scan(type, room)) else nav.navigate(Routes.find(type, room))
+                        when (type) {
+                            DeviceType.AIRTEL_HD -> nav.navigate(Routes.scan(type, room))
+                            DeviceType.ATOMBERG_FAN -> scope.launch {
+                                // No pairing and no scan needed: the fan gets the public code set; keys are overridable later.
+                                val id = `in`.s123dive.oneremote.ui.setup.SetupViewModel(graph).addDevice(
+                                    type, "Fan", room, listOf(`in`.s123dive.oneremote.core.TransportKind.IR),
+                                    `in`.s123dive.oneremote.devices.DeviceConfig.empty().with(`in`.s123dive.oneremote.devices.DeviceConfig.CODESET_ID, `in`.s123dive.oneremote.ir.codesets.AtombergCodeset.ID),
+                                )
+                                nav.navigate(Routes.remote(id)) { popUpTo(Routes.SCENE) }
+                            }
+                            else -> nav.navigate(Routes.find(type, room))
+                        }
                     })
                 }
                 composable("find/{type}?room={room}") { entry ->

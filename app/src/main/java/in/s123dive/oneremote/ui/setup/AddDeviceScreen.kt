@@ -55,6 +55,12 @@ fun AddDeviceScreen(roomId: String?, onBack: () -> Unit, onPick: (DeviceType) ->
                 blocked = null,
                 onClick = { onPick(DeviceType.SONY_BRAVIA) },
             )
+            TypeCard(
+                title = DeviceType.ATOMBERG_FAN.displayName,
+                subtitle = "IR only. Uses the public Atomberg code set; keys can be overridden per button if your unit differs.",
+                blocked = caps.fanMessage,
+                onClick = { onPick(DeviceType.ATOMBERG_FAN) },
+            )
             if (roomId != null) Text("Will be added to the current room.", style = MaterialTheme.typography.bodySmall)
         }
     }
