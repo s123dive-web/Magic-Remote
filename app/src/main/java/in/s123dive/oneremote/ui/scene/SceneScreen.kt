@@ -122,18 +122,20 @@ fun SceneScreen(
                     } else Text(room?.name ?: "OneRemote")
                 },
                 actions = {
+                    // Always reachable, whatever remotes the room already shows.
+                    IconButton(onClick = { onAddDevice(room?.id) }) { Icon(Icons.Default.Add, contentDescription = "Add device") }
                     IconButton(onClick = onOpenRooms) { Icon(Icons.Default.MeetingRoom, contentDescription = "Rooms") }
                     IconButton(onClick = onOpenSettings) { Icon(Icons.Default.Settings, contentDescription = "Settings") }
                 },
             )
         },
         floatingActionButton = {
-            if (room == null || (ui.tv == null && ui.stb == null)) FloatingActionButton(onClick = { onAddDevice(room?.id) }) { Icon(Icons.Default.Add, contentDescription = "Add device") }
+            if (room == null || pagerDevices.isEmpty()) FloatingActionButton(onClick = { onAddDevice(room?.id) }) { Icon(Icons.Default.Add, contentDescription = "Add device") }
             else micFab(room.id)
         },
         snackbarHost = { SnackbarHost(snackbar) },
     ) { padding ->
-        if (room == null || (ui.tv == null && ui.stb == null)) {
+        if (room == null || pagerDevices.isEmpty()) {
             Column(Modifier.fillMaxSize().padding(padding).verticalScroll(rememberScrollState()).padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 SectionCard("Get started") { Text("Tap + to add your Airtel box, LG TV or Sony Bravia. Rooms are created automatically; manage them from the room icon.") }
                 CapabilitiesCard(caps)
@@ -146,6 +148,7 @@ fun SceneScreen(
                 androidx.compose.material3.Tab(selected = pager.currentPage == i, onClick = { scope.launch { pager.animateScrollToPage(i) } }, text = { Text(d.name, maxLines = 1) })
             }
             androidx.compose.material3.Tab(selected = pager.currentPage == combinedPage, onClick = { scope.launch { pager.animateScrollToPage(combinedPage) } }, text = { Text("All") })
+            androidx.compose.material3.Tab(selected = false, onClick = { onAddDevice(room.id) }, text = { Text("+ Add") })
         }
         HorizontalPager(state = pager, modifier = Modifier.fillMaxSize()) { page ->
             if (page == combinedPage) {
@@ -194,6 +197,7 @@ fun SceneScreen(
                             last?.let { Text(it.text, style = MaterialTheme.typography.bodySmall, color = if (it.ok) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.error, maxLines = 1) }
                         }
                         macroRow(room.id)
+                        if (ui.tv == null || ui.stb == null) MissingDeviceCard(tvMissing = ui.tv == null, boxMissing = ui.stb == null) { onAddDevice(room.id) }
                         if (landscape) {
                             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                                 Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(10.dp)) { tvZone() }
@@ -230,6 +234,20 @@ fun SceneScreen(
             },
             confirmButton = { TextButton(onClick = { overrideFor = null }) { Text("Close") } },
         )
+    }
+}
+
+/** Shown on the combined page when the room has no TV or no box yet, so the next device is one tap away. */
+@Composable
+private fun MissingDeviceCard(tvMissing: Boolean, boxMissing: Boolean, onAdd: () -> Unit) {
+    val (title, what) = when {
+        tvMissing && boxMissing -> "No TV or box in this room yet" to "a TV or a set-top box"
+        tvMissing -> "No TV in this room yet" to "your TV (LG or Sony)"
+        else -> "No set-top box in this room yet" to "your set-top box (Airtel)"
+    }
+    SectionCard(title) {
+        Text("Add $what to control it from here together with the rest of the room.", style = MaterialTheme.typography.bodySmall)
+        androidx.compose.material3.FilledTonalButton(onClick = onAdd) { Icon(Icons.Default.Add, contentDescription = null); Text("  Add device") }
     }
 }
 

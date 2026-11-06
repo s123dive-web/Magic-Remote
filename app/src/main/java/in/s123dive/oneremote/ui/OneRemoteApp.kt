@@ -170,6 +170,7 @@ fun OneRemoteApp() {
                     DeviceRemoteScreen(
                         instanceId = id, onBack = { nav.popBackStack() }, onDeviceSettings = { nav.navigate(Routes.device(id)) },
                         extra = ::deviceExtras,
+                        onHome = { if (!nav.popBackStack(Routes.SCENE, inclusive = false)) nav.navigate(Routes.SCENE) },
                     )
                 }
                 composable("device/{id}") { entry ->

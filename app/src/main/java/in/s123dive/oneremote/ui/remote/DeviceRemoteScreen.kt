@@ -12,6 +12,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -53,6 +54,7 @@ fun DeviceRemoteScreen(
     onBack: () -> Unit,
     onDeviceSettings: () -> Unit,
     extra: @Composable (RemoteViewModel, PadActions) -> Unit = { _, _ -> },
+    onHome: (() -> Unit)? = null,
 ) {
     val graph = appGraph()
     val instance by graph.repository.state.collectAsStateWithLifecycle()
@@ -61,7 +63,10 @@ fun DeviceRemoteScreen(
             TopAppBar(
                 title = { Text(instance.device(instanceId)?.name ?: "Remote") },
                 navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back") } },
-                actions = { IconButton(onClick = onDeviceSettings) { Icon(Icons.Default.Settings, contentDescription = "Device settings") } },
+                actions = {
+                    if (onHome != null) IconButton(onClick = onHome) { Icon(Icons.Default.Home, contentDescription = "Home: all remotes, add device") }
+                    IconButton(onClick = onDeviceSettings) { Icon(Icons.Default.Settings, contentDescription = "Device settings") }
+                },
             )
         },
     ) { padding ->
