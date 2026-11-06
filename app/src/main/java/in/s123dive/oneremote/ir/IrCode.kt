@@ -44,6 +44,13 @@ sealed interface IrCode {
         override fun describe() = Rc6Encoder.describe(address, command)
     }
 
+    @Serializable @SerialName("samsung32")
+    data class Samsung32(val address: Int, val command: Int) : IrCode {
+        override val carrierHz get() = SamsungEncoder.CARRIER_HZ
+        override fun pattern() = SamsungEncoder.press(address, command)
+        override fun describe() = SamsungEncoder.describe(address, command)
+    }
+
     /** Nokia32 (Technicolor / Airtel boxes): device, sub-device, X and an 8-bit function. */
     @Serializable @SerialName("nokia32")
     data class Nokia32(val device: Int, val sub: Int, val x: Int, val function: Int) : IrCode {

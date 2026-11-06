@@ -50,6 +50,10 @@ All phases are written and type-checked; none has run on real hardware yet (see 
   Register manifest = pywebostv/lgtv2 signature + the spec permission list; hello and getSystemInfo precede register.
 - LG Input key over Wi-Fi is deliberately unsupported (no SSAP picker call) so the Router falls back to IR 0x0B.
 - Airtel codes: DS (irplus, Nokia32 38.0.38) first, STB2 (Flipper-IRDB, NECext 0xA1DE), S8300 raw, then irdb NEC STB Power codes; expert mode + key finder.
+- Expert mode (`ui/setup/ExpertCodesScreen.kt`) is a protocol code lab: pick NEC/NECext/Nokia32/RC5/RC6/SIRC12-15-20/Samsung32,
+  type address+command, or paste Pronto hex / Flipper `.ir` text (`ir/CodeText.kt`); Send once, Sweep commands from the typed
+  base code (`NecSweep.commandSweepFor`), then assign the reacting code to a key (stored as `customCodes`; creates the device
+  on first save). `IrCode.Samsung32` + `SamsungEncoder` exist for pasted codes; no device uses them by default.
 - Kotlin package: `in` is a keyword, so sources use ``package `in`.s123dive.oneremote...``; manifest/applicationId plain.
 - Persistence: one `AppState` JSON document in DataStore (lenient read, `type` discriminator, `version`); prefs in Preferences.
 - Corrupt `app_state.json` is replaced with an empty state AND logged (role STORE).

@@ -44,10 +44,11 @@ object NecSweep {
         is IrCode.Rc6 -> (0..255).filter { it !in skip }.map { Candidate(Rc6Encoder.describe(power.address, it), IrCode.Rc6(power.address, it)) }
         is IrCode.Sirc -> (0..127).filter { it !in skip }.map { Candidate(SircEncoder.describe(it, power.address, power.bits), IrCode.Sirc(it, power.address, power.bits)) }
         is IrCode.Nokia32 -> (0..255).filter { it !in skip }.map { Candidate(Nokia32Encoder.describe(power.device, power.sub, power.x, it), IrCode.Nokia32(power.device, power.sub, power.x, it)) }
+        is IrCode.Samsung32 -> (0..255).filter { it !in skip }.map { Candidate(SamsungEncoder.describe(power.address, it), IrCode.Samsung32(power.address, it)) }
         is IrCode.Raw -> emptyList()
     }
 
-    fun commandOf(code: IrCode): Int? = when (code) { is IrCode.Nec -> code.command; is IrCode.Rc5 -> code.command; is IrCode.Rc6 -> code.command; is IrCode.Sirc -> code.command; is IrCode.Nokia32 -> code.function; is IrCode.Raw -> null }
+    fun commandOf(code: IrCode): Int? = when (code) { is IrCode.Nec -> code.command; is IrCode.Rc5 -> code.command; is IrCode.Rc6 -> code.command; is IrCode.Sirc -> code.command; is IrCode.Nokia32 -> code.function; is IrCode.Samsung32 -> code.command; is IrCode.Raw -> null }
 
     /** Nokia32 power sweep for other Technicolor boxes: F=12 across devices 0..255 (sub 0, X = device, as Airtel uses). */
     fun nokia32PowerPass(): List<Candidate> = (0..255).map { Candidate(Nokia32Encoder.describe(it, 0, it and 0x7F, 12), IrCode.Nokia32(it, 0, it and 0x7F, 12)) }
