@@ -111,14 +111,15 @@ fun DeviceRemotePage(
                 if (instance?.type == DeviceType.LG_WEBOS || instance?.type == DeviceType.SONY_BRAVIA) IconButton(onClick = { sheet = true }) { Icon(androidx.compose.material.icons.Icons.Default.MoreVert, contentDescription = "Apps, inputs, typing") }
                 IconButton(onClick = onDeviceSettings) { Icon(Icons.Default.Settings, contentDescription = "Device settings") }
             }
-            val (w, h) = when (instance?.type) {
-                DeviceType.AIRTEL_HD -> 250.dp to 760.dp
-                DeviceType.LG_WEBOS -> 220.dp to 820.dp
-                DeviceType.SONY_BRAVIA -> 230.dp to 720.dp
-                DeviceType.ATOMBERG_FAN -> 230.dp to 420.dp
-                null -> 200.dp to 200.dp
+            // Design widths of the physical layouts; heights are measured by FitScale.
+            val w = when (instance?.type) {
+                DeviceType.AIRTEL_HD -> 250.dp
+                DeviceType.LG_WEBOS -> 220.dp
+                DeviceType.SONY_BRAVIA -> 230.dp
+                DeviceType.ATOMBERG_FAN -> 230.dp
+                null -> 200.dp
             }
-            `in`.s123dive.oneremote.ui.remote.layouts.FitScale(w, h, Modifier.weight(1f)) {
+            `in`.s123dive.oneremote.ui.remote.layouts.FitScale(w, Modifier.weight(1f)) {
                 when (instance?.type) {
                     DeviceType.AIRTEL_HD -> `in`.s123dive.oneremote.ui.remote.layouts.AirtelRemote(actions, tv = vm.roomTvActions(actions))
                     DeviceType.LG_WEBOS -> `in`.s123dive.oneremote.ui.remote.layouts.LgMagicRemote(

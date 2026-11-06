@@ -55,7 +55,7 @@ fun LgMagicRemote(a: PadActions, onMic: () -> Unit, onApp: (String) -> Unit) {
         }
         KeyRow(8.dp) {
             Key(a, Command.ChannelList, "—/LIST", width = 44.dp, height = 24.dp, shape = RoundedCornerShape(12.dp), fontSize = 8.sp)
-            Key(a, Command.Digit(0), "0", width = 44.dp, height = 24.dp, shape = RoundedCornerShape(12.dp), fontSize = 12.sp, bold = true, sub = "QUICK ACCESS")
+            Key(a, Command.Digit(0), "0", width = 44.dp, height = 24.dp, shape = RoundedCornerShape(12.dp), fontSize = 12.sp, bold = true, sub = "QUICK")
             Key(a, Command.Audio, "AD/SAP", width = 44.dp, height = 24.dp, shape = RoundedCornerShape(12.dp), fontSize = 8.sp)
         }
         // volume column · mute/mic · channel column

@@ -61,7 +61,7 @@ fun Phone(r: Remote, old: Boolean) {
             Box(Modifier.fillMaxWidth().height(64.dp).background(Color(0xFF1E2230))) { Text("Home (app bar)", color = Color.White) }
             Box(Modifier.fillMaxWidth().height(48.dp).background(Color(0xFF6A1B1B))) { Text("TABS - must stay visible", color = Color.White) }
             Box(Modifier.fillMaxWidth().height(40.dp).background(Color(0xFF1B3A6A))) { Text("device header row", color = Color.White) }
-            if (old) OldFitScale(r.w, r.h, Modifier.weight(1f)) { r.body() } else FitScale(r.w, r.h, Modifier.weight(1f)) { r.body() }
+            if (old) OldFitScale(r.w, r.h, Modifier.weight(1f)) { r.body() } else FitScale(r.w, Modifier.weight(1f)) { r.body() }
         }
     }
 }

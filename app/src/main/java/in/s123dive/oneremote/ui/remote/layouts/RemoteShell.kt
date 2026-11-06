@@ -129,7 +129,7 @@ fun Key(
         if (icon != null) Icon(icon, contentDescription = label, tint = fg, modifier = Modifier.size(height * 0.6f))
         else Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(label, color = fg, fontSize = fontSize, fontWeight = if (bold) FontWeight.Bold else FontWeight.Medium, textAlign = TextAlign.Center, maxLines = 1, lineHeight = fontSize)
-            if (sub != null) Text(sub, color = fg.copy(alpha = 0.8f), fontSize = 7.sp, lineHeight = 7.sp, maxLines = 1)
+            if (sub != null) Text(sub, color = fg.copy(alpha = 0.8f), fontSize = 7.sp, lineHeight = 7.sp, maxLines = 1, softWrap = false, textAlign = TextAlign.Center)
         }
     }
 }
@@ -143,7 +143,7 @@ fun ActionKey(label: String, onClick: () -> Unit, width: Dp = 64.dp, height: Dp 
         contentAlignment = Alignment.Center,
     ) {
         if (icon != null) Icon(icon, contentDescription = label, tint = textColor, modifier = Modifier.size(height * 0.6f))
-        else Text(label, color = textColor, fontSize = fontSize, fontWeight = FontWeight.Bold, maxLines = 1)
+        else Text(label, color = textColor, fontSize = fontSize, fontWeight = FontWeight.Bold, maxLines = 1, lineHeight = fontSize, textAlign = TextAlign.Center)
     }
 }
 
